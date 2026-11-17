@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# fk: feelkit's front door. `fk help` lists the commands.
+# fk looks [extension]: the GNOME extensions' looks (fk runs a layer's bin/fk-<name> as
+# fk <name>): re-apply, reset, put your old settings back, undo, keep your changes as your patch.
 set -uo pipefail
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 # the toolkit's folder: walk up from here (works inside the toolkit and as a layer in layers/)
@@ -36,9 +37,9 @@ looks_about() {
 looks_note() {
   case $1 in
     "$LOOK_KEEP") echo "nothing changes" ;;
-    "$LOOK_APP")  echo "feelkit's preset for these settings" ;;
+    "$LOOK_APP")  echo "bluefeel's preset for these settings" ;;
     "$LOOK_RST")  echo "asks first; undo brings them back" ;;
-    "$LOOK_PRE")  echo "what you had before feelkit set them" ;;
+    "$LOOK_PRE")  echo "what you had before bluefeel set them" ;;
     "$LOOK_UND")  echo "one step back" ;;
     "$LOOK_KPT")  echo "what you changed goes in your patch (~/.config/work-toolkit/patches), loaded after the look" ;;
     "$LOOK_DRP")  echo "back to the plain look (your patch is kept as <name>.dropped)" ;;
@@ -86,7 +87,7 @@ cmd_looks() {   # fk looks [id]: re-apply, reset, put back or undo an extension'
     gx_present "$uuid" && gx_enabled "$uuid" || die "$nice isn't installed and enabled · see: fk install ls"
     look_menu "$path" "$file" "$name" "$nice" "$ign"; return
   fi
-  [[ -n $(looks_ids) ]] || die "no feelkit extension to adjust · see: fk install ls"
+  [[ -n $(looks_ids) ]] || die "no bluefeel extension to adjust · see: fk install ls"
   if ! ui_fzf_at_least 0.63; then die "the list needs fzf 0.63 or newer · or: fk looks <extension>"; fi
   # One list that stays open: enter on an extension shows its choices in the same list
   # (the reset question in its header); results go in the footer (lib/inplace.sh).
@@ -161,20 +162,7 @@ looks_key() {   # key value query (value: the id in the list, the choice in the 
   esac
 }
 
-case "${1:-help}" in
-  install)   shift; exec "$repo/install.sh" --layer=feelkit "$@" ;;
-  uninstall) shift; exec "$repo/uninstall.sh" --layer=feelkit "$@" ;;
-  looks) shift; cmd_looks "$@" ;;
+case "${1:-}" in
   __key) [[ -z ${NO_COLOR:-} ]] && ui_color; looks_key "${2:-}" "${3:-}" "${4:-}" ;;
-  doctor) exec bash "$(dirname "$SELF")/../gnome/dash2dock/check-patch.sh" "${@:2}" ;;
-  help|-h|--help) ui_help fk "feelkit: the appearance parts" <<'HELP'
-## Commands
-fk install [part...]	set up feelkit's parts: a tab per group, then one question per change	e.g. fk install kitty-theme · fk install ls lists them
-fk uninstall [part...]	remove them, putting your own settings back
-fk looks [extension]	re-apply an extension's look, reset it, put your old settings back, undo the last change, or keep what you changed as your patch (~/.config/work-toolkit/patches, loaded after the look)	Extensions: vitals, blur-my-shell, rounded-corners, dash-to-panel
-fk doctor [dir|zip]	try our Dash2Dock patch against the newest release (or a folder/zip), hunk by hunk
-fk help	this page
-HELP
-  ;;
-  *) ui_unknown fk "$1" command ;;
+  *) cmd_looks "$@" ;;
 esac

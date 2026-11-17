@@ -1,11 +1,11 @@
-# feelkit: the appearance parts (kitty background, theme, accents, icons, window placement;
+# bluefeel: a look (kitty background, theme, accents, icons, window placement;
 # the GNOME bar, dock, blur, corners, Vitals). A layer of the toolkit (lib/layers.sh): it
 # adds its components to the installer, and the helpers they use (ask, ok, gx_*, look_*, ...)
 # come from the toolkit's lib/components.sh, which loads this file at its end.
 fk="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 COMPONENTS+=(kitty-bg kitty-theme kitty-accents kitty-icons kitty-centered dash2dock dash-to-panel no-animations vitals vitals-icons blur-my-shell rounded-corners)
-# feelkit is set up on its own (the file "standalone"): fk install / fk uninstall, never in
+# Its parts are fk's (the file "kit"): fk install / fk uninstall, never in
 # tk install. Its tabs (a layer names its own groups), what each needs from the machine, and
 # which ones have a settings menu (fk install <id> on an installed one).
 group_kitty_bg() { echo "Kitty looks"; }; group_kitty_theme() { echo "Kitty looks"; }; group_kitty_accents() { echo "Kitty looks"; }
@@ -26,7 +26,7 @@ requires_vitals() { echo gnome; }; requires_vitals_icons() { echo gnome; }
 requires_blur_my_shell() { echo gnome; }; requires_rounded_corners() { echo gnome; }
 LOOK_PARTS+=(dash-to-panel vitals blur-my-shell rounded-corners)
 NEEDS+=([kitty-bg]=kitty-config [kitty-theme]=kitty-config [kitty-accents]=kitty-config [kitty-icons]=kitty [vitals-icons]=vitals)
-feelkit_wants_launcher_entry() { d2d_present || d2d_other_bar; }
+wants_launcher_entry() { d2d_present || d2d_other_bar; }
 
 # ------------------------------------------------------------ kitty-bg ---
 # k-bg itself comes with the toolkit (kitty/bin); this sets up what it needs and
@@ -72,7 +72,7 @@ uninstall_kitty_bg() {
 
 # --------------------------------------------------------- kitty-theme ---
 # k-theme comes with the toolkit; this downloads kitty's theme collection and
-# offers a first pick. Your own themes go in feelkit/themes (k-theme add).
+# offers a first pick. Your own themes go in bluefeel/themes (k-theme add).
 kth="$fk/bin/k-theme"
 kth_conf="$HOME/.config/kitty/theme.conf"
 kth_data="${XDG_DATA_HOME:-$HOME/.local/share}/k-theme"
@@ -98,7 +98,7 @@ install_kitty_theme() {
     elif ask "Download kitty's theme collection? (about 0.6 MB from GitHub)"; then
       dry || "$kth" update >>"$log_file" 2>&1 && ok "$(grep -c . "$kth_data/kitty/index.tsv" 2>/dev/null) themes" ||
         { fail "download failed (offline?); later: k-theme update"; return 1; }
-    else skip "your own themes in feelkit/themes still work"; fi
+    else skip "your own themes in bluefeel/themes still work"; fi
   fi
   [[ -f "$kth_conf" ]] && { ok "theme: $("$kth" current) ${D}(k-theme to change)${R}"; return; }
   dry && return
@@ -111,7 +111,7 @@ uninstall_kitty_theme() {
   [[ -f "$kth_conf" || -d "$kth_data" ]] || { ok "nothing set"; return 0; }
   [[ -f "$kth_conf" ]] && "$kth" default >>"$log_file" 2>&1
   rm -rf "$kth_data"
-  ok "back to kitty's colours; downloaded collection removed ${D}(your themes in feelkit/themes stay)${R}"
+  ok "back to kitty's colours; downloaded collection removed ${D}(your themes in bluefeel/themes stay)${R}"
 }
 
 # ------------------------------------------------------- kitty-accents ---
@@ -150,7 +150,7 @@ state_kitty_icons() { NOTE=""
   if (( n >= 3 )) && grep -q "^Icon=$icon_dir/" "$kitty_desktop" 2>/dev/null; then STATE=installed
   elif (( n )); then STATE=partial   # (kitty.desktop alone is the kitty part's, not ours)
   else STATE=missing; fi; }
-install_kitty_icons() { ask "Run feelkit/kitty-icons/install-kitty-icons.sh?" && bash "$fk/kitty-icons/install-kitty-icons.sh" || skip; }
+install_kitty_icons() { ask "Run bluefeel/kitty-icons/install-kitty-icons.sh?" && bash "$fk/kitty-icons/install-kitty-icons.sh" || skip; }
 uninstall_kitty_icons() { bash "$fk/kitty-icons/cleanup-kitty-icons.sh"; }
 
 # ------------------------------------------------------ kitty-centered ---
@@ -206,7 +206,7 @@ uninstall_no_animations() {
 vt_uuid="Vitals@CoreCoding.com"; vt_path=/org/gnome/shell/extensions/vitals/; vt_file="$fk/gnome/vitals/settings.dconf"
 label_vitals() { echo "Vitals"; }
 title_vitals() { echo "CPU, memory and temperature in the top bar (GNOME extension; log out once)"; }
-detail_vitals() { echo "GNOME extension $vt_uuid from extensions.gnome.org + preset look feelkit/gnome/vitals (sensors shown, fixed widths); the uninstall offers your earlier settings or the defaults"; }
+detail_vitals() { echo "GNOME extension $vt_uuid from extensions.gnome.org + preset look bluefeel/gnome/vitals (sensors shown, fixed widths); the uninstall offers your earlier settings or the defaults"; }
 state_vitals() { gx_state "$vt_uuid" "$vt_path" "$vt_file"; }
 install_vitals() { gx_install "$vt_uuid" "Vitals" "$vt_path" "$vt_file"; }
 uninstall_vitals() { gx_uninstall "$vt_uuid" "Vitals" "$vt_path"; }
@@ -216,7 +216,7 @@ uninstall_vitals() { gx_uninstall "$vt_uuid" "Vitals" "$vt_path"; }
 bm_uuid="blur-my-shell@aunetx"; bm_path=/org/gnome/shell/extensions/blur-my-shell/; bm_file="$fk/gnome/blur-my-shell/settings.dconf"
 label_blur_my_shell() { echo "Blur my Shell"; }
 title_blur_my_shell() { echo "Blurred overview and Alt+Tab (GNOME extension; log out once)"; }
-detail_blur_my_shell() { echo "GNOME extension $bm_uuid from extensions.gnome.org + preset look feelkit/gnome/blur-my-shell; the uninstall offers your earlier settings or the defaults"; }
+detail_blur_my_shell() { echo "GNOME extension $bm_uuid from extensions.gnome.org + preset look bluefeel/gnome/blur-my-shell; the uninstall offers your earlier settings or the defaults"; }
 state_blur_my_shell() { gx_state "$bm_uuid" "$bm_path" "$bm_file"; }
 install_blur_my_shell() { gx_install "$bm_uuid" "Blur my Shell" "$bm_path" "$bm_file"; }
 uninstall_blur_my_shell() { gx_uninstall "$bm_uuid" "Blur my Shell" "$bm_path"; }
@@ -226,13 +226,13 @@ uninstall_blur_my_shell() { gx_uninstall "$bm_uuid" "Blur my Shell" "$bm_path"; 
 rc_uuid="rounded-window-corners@fxgn"; rc_path=/org/gnome/shell/extensions/rounded-window-corners-reborn/; rc_file="$fk/gnome/rounded-window-corners/settings.dconf"
 label_rounded_corners() { echo "Rounded corners"; }
 title_rounded_corners() { echo "Rounded corners on every window (GNOME extension; log out once)"; }
-detail_rounded_corners() { echo "GNOME extension $rc_uuid from extensions.gnome.org + preset look feelkit/gnome/rounded-window-corners (15 px); the uninstall offers your earlier settings or the defaults"; }
+detail_rounded_corners() { echo "GNOME extension $rc_uuid from extensions.gnome.org + preset look bluefeel/gnome/rounded-window-corners (15 px); the uninstall offers your earlier settings or the defaults"; }
 state_rounded_corners() { gx_state "$rc_uuid" "$rc_path" "$rc_file"; }
 install_rounded_corners() { gx_install "$rc_uuid" "Rounded Window Corners" "$rc_path" "$rc_file"; }
 uninstall_rounded_corners() { gx_uninstall "$rc_uuid" "Rounded Window Corners" "$rc_path"; }
 
 # -------------------------------------------------------- vitals-icons ---
-# Clear CPU and memory icons for the Vitals top-bar extension (feelkit/gnome/vitals-icons).
+# Clear CPU and memory icons for the Vitals top-bar extension (bluefeel/gnome/vitals-icons).
 # They go over the extension's "original" icon style; the old files are kept as
 # *.toolkit-orig for the uninstall. An extension update puts the stock icons back,
 # so run the setup again after one. Also centres the dropdown under the Vitals pill.
@@ -273,11 +273,11 @@ uninstall_vitals_icons() {
 
 # ---------------------------------------------------------- dash2dock ---
 # Dash2Dock Animated (GNOME extension, macOS-style dock) from extensions.gnome.org, with
-# the toolkit's patches (feelkit/gnome/dash2dock/dash2dock.patch, written against release 92):
+# the toolkit's patches (bluefeel/gnome/dash2dock/dash2dock.patch, written against release 92):
 #  - a click on an app with several windows shows live window previews (the app icon for a minimized window);
 #  - dragging an icon to reorder no longer flickers;
 #  - windows stop exactly at the dock (no extra gap); the dock panel catches the mouse.
-# Plus a preset look (feelkit/gnome/dash2dock/settings.dconf). Replaces Ubuntu's dock while it's on.
+# Plus a preset look (bluefeel/gnome/dash2dock/settings.dconf). Replaces Ubuntu's dock while it's on.
 # Pick this, dash-to-panel (below), or both.
 d2d_uuid="dash2dock-lite@icedman.github.com"
 d2d_dir="$HOME/.local/share/gnome-shell/extensions/$d2d_uuid"; d2d_src="$fk/gnome/dash2dock"
@@ -289,7 +289,7 @@ d2d_unfit() { ! patch -p1 -N --dry-run -s -d "$d2d_dir" <"$d2d_src/dash2dock.pat
 d2d_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$d2d_uuid'"; }
 label_dash2dock() { echo "Dash2Dock dock"; }
 title_dash2dock() { echo "macOS-style dock with window previews on click (replaces Ubuntu's dock; log out once)"; }
-detail_dash2dock() { echo "GNOME extension $d2d_uuid from extensions.gnome.org + feelkit/gnome/dash2dock patches and preset look; turns Ubuntu's dock off (put back by the uninstall)"; }
+detail_dash2dock() { echo "GNOME extension $d2d_uuid from extensions.gnome.org + bluefeel/gnome/dash2dock patches and preset look; turns Ubuntu's dock off (put back by the uninstall)"; }
 state_dash2dock() { NOTE=""
   type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
   if d2d_present && d2d_patched && d2d_enabled; then STATE=installed
@@ -342,7 +342,7 @@ d2d_other_bar() { [[ -d "$HOME/.local/share/gnome-shell/extensions/dash-to-panel
 # Dash to Panel (GNOME extension) from extensions.gnome.org: dock and top bar merged into one
 # bar. App icons (with window previews) on the left, clock, Vitals and system menu on the
 # right; no Activities button (Super opens the overview). The preset (your own tuned look:
-# feelkit/gnome/dash-to-panel/settings.dconf) puts it at the bottom with a new apps-button icon.
+# bluefeel/gnome/dash-to-panel/settings.dconf) puts it at the bottom with a new apps-button icon.
 # Pick this, dash2dock (above), or both.
 dtp_uuid="dash-to-panel@jderose9.github.com"
 dtp_dir="$HOME/.local/share/gnome-shell/extensions/$dtp_uuid"; dtp_src="$fk/gnome/dash-to-panel"
@@ -352,7 +352,7 @@ dtp_present() { [[ -d "$dtp_dir" ]]; }
 dtp_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$dtp_uuid'"; }
 label_dash_to_panel() { echo "One bar (Dash to Panel)"; }
 title_dash_to_panel() { echo "dock and top bar merged into one bar, no Activities button (log out once)"; }
-detail_dash_to_panel() { echo "GNOME extension $dtp_uuid from extensions.gnome.org + preset look feelkit/gnome/dash-to-panel; turns Ubuntu's dock off (put back by the uninstall)"; }
+detail_dash_to_panel() { echo "GNOME extension $dtp_uuid from extensions.gnome.org + preset look bluefeel/gnome/dash-to-panel; turns Ubuntu's dock off (put back by the uninstall)"; }
 state_dash_to_panel() { NOTE=""
   type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
   if dtp_present && dtp_enabled; then

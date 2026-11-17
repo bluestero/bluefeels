@@ -3,7 +3,7 @@
 # entry that k-icon switches between. Safe to run any number of times: only
 # missing pieces are added, and your current icon choice is kept.
 #
-# The k-icon command itself is feelkit/bin/k-icon.
+# The k-icon command itself is bluefeel/bin/k-icon.
 # Undo: ./cleanup-kitty-icons.sh (or ../uninstall.sh kitty-icons)
 set -Eeuo pipefail
 

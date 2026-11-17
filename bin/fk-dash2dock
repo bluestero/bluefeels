@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# fk dash2dock [dir|zip]: try our Dash2Dock patch against the newest release (or a folder/zip), hunk by hunk
+exec bash "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../gnome/dash2dock/check-patch.sh" "$@"

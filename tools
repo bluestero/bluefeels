@@ -1,5 +1,6 @@
-# tk's list of feelkit's commands: name|group|what it does|program it needs
+# Its commands, for fk's picker and help:  name|group|what it does|program it needs
 k-bg|Kitty|background image, brightness, opacity, accent colours|kitty
 k-theme|Kitty|colour theme with live preview; Mine / All tabs|kitty
 k-icon|Kitty|kitty's app icon|kitty
-fk|Desktop|looks of the GNOME extensions: re-apply, reset, put back, undo|gnome-shell
+fk looks|Desktop|looks of the GNOME extensions: re-apply, reset, put back, undo|gnome-shell
+fk dash2dock|Desktop|try our Dash2Dock patch against the newest release (or a folder/zip), hunk by hunk|
