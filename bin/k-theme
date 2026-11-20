@@ -2,7 +2,7 @@
 # k-theme: kitty colour theme picker with live preview. `k-theme help` lists the commands.
 #
 # Themes come from two places:
-#   yours   ~/.config/kitty/themes/*.conf and the team's bluefeel/themes/*.conf (KTHEME_DIR).
+#   yours   ~/.config/kitty/themes/*.conf and the team's bluefeels/themes/*.conf (KTHEME_DIR).
 #           Drop a downloaded .conf in there, or: k-theme add <file or URL>
 #   kitty   kitty's own collection (400+), downloaded once into ~/.local/share/k-theme
 # Mine is your short list (names in ~/.config/k-theme/mine, everyone has their own);
@@ -310,7 +310,7 @@ ctrl-d	Mine: move back to All
 ctrl-f	show all → only dark → only light (both tabs)
 enter / esc	keep the theme / put the old one back
 
-Imported themes go in ~/.config/kitty/themes; the team's are in bluefeel/themes. Only colour
+Imported themes go in ~/.config/kitty/themes; the team's are in bluefeels/themes. Only colour
 lines are used. While a k-bg image is set (accents on) its palette wins; k-theme override on shows the theme.
 EOF
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # k-bg: kitty background picker with live preview. `k-bg help` lists the commands.
 #
-# Images: bluefeel/backgrounds (override with KBG_DIR). Drop any jpg/png/webp in there.
+# Images: bluefeels/backgrounds (override with KBG_DIR). Drop any jpg/png/webp in there.
 # One PNG copy per image, cut to your screen's shape, lives in ~/.local/share/k-bg/<WxH>
 # (plus dimmed / see-through versions): the picker previews and the final
 # background are the same file, so Enter is instant.
@@ -397,7 +397,7 @@ k-bg opacity <30-100>	see-through image in %	100 = solid; kitty 0.43+
 k-bg accents on|off	palette from the image	all text, prompt, pickers, cursor, tabs; red/green/yellow keep their meaning · no image: k-theme
 k-bg help	this page
 
-Images: bluefeel/backgrounds (or KBG_DIR). Drop any jpg/png/webp in there.
+Images: bluefeels/backgrounds (or KBG_DIR). Drop any jpg/png/webp in there.
 The choice is saved in ~/.config/kitty/background.conf and applies to every window.
 EOF
 }

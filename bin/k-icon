@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # k-icon: pick the kitty app icon (the launcher/dock icon). `k-icon help` lists the commands.
-# The icons come from bluefeel/kitty-icons/install-kitty-icons.sh (fk install kitty-icons).
+# The icons come from bluefeels/kitty-icons/install-kitty-icons.sh (fk install kitty-icons).
 set -uo pipefail
 SELF="$(readlink -f "${BASH_SOURCE[0]}")"
 # shellcheck source=../../lib/ui.sh

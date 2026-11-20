@@ -17,7 +17,7 @@ if [[ -f "$DESKTOP_FILE" ]]; then rm -f "$DESKTOP_FILE"; echo "[REMOVED] $DESKTO
 else echo "[OK] No user kitty desktop entry"; fi
 
 # Old installs put a k-icon function into ~/.bashrc; the toolkit loads it from
-# bluefeel/bin/k-icon instead, so remove any stray copy.
+# bluefeels/bin/k-icon instead, so remove any stray copy.
 if [[ -f "$BASHRC" ]] && grep -qE '^# >>> Kitty Icon Picker >>>|^k-icon[[:space:]]*\(\)' "$BASHRC"; then
     cp -p "$BASHRC" "$BASHRC.bak-$(date +%Y%m%d-%H%M%S)"
     python3 -I - "$BASHRC" <<'PY'

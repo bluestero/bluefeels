@@ -37,9 +37,9 @@ looks_about() {
 looks_note() {
   case $1 in
     "$LOOK_KEEP") echo "nothing changes" ;;
-    "$LOOK_APP")  echo "bluefeel's preset for these settings" ;;
+    "$LOOK_APP")  echo "bluefeels's preset for these settings" ;;
     "$LOOK_RST")  echo "asks first; undo brings them back" ;;
-    "$LOOK_PRE")  echo "what you had before bluefeel set them" ;;
+    "$LOOK_PRE")  echo "what you had before bluefeels set them" ;;
     "$LOOK_UND")  echo "one step back" ;;
     "$LOOK_KPT")  echo "what you changed goes in your patch (~/.config/work-toolkit/patches), loaded after the look" ;;
     "$LOOK_DRP")  echo "back to the plain look (your patch is kept as <name>.dropped)" ;;
@@ -87,7 +87,7 @@ cmd_looks() {   # fk looks [id]: re-apply, reset, put back or undo an extension'
     gx_present "$uuid" && gx_enabled "$uuid" || die "$nice isn't installed and enabled · see: fk install ls"
     look_menu "$path" "$file" "$name" "$nice" "$ign"; return
   fi
-  [[ -n $(looks_ids) ]] || die "no bluefeel extension to adjust · see: fk install ls"
+  [[ -n $(looks_ids) ]] || die "no bluefeels extension to adjust · see: fk install ls"
   if ! ui_fzf_at_least 0.63; then die "the list needs fzf 0.63 or newer · or: fk looks <extension>"; fi
   # One list that stays open: enter on an extension shows its choices in the same list
   # (the reset question in its header); results go in the footer (lib/inplace.sh).

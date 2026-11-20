@@ -1,4 +1,4 @@
-# k-icon shell hook: tab completion. (k-icon itself is bluefeel/bin/k-icon.)
+# k-icon shell hook: tab completion. (k-icon itself is bluefeels/bin/k-icon.)
 
 unset -f k-icon 2>/dev/null   # older toolkit versions defined it as a function
 _k_icon_complete() {

@@ -1,4 +1,4 @@
-# bluefeel's shell setup. The toolkit's shell/init.sh sources it (bash and zsh) before direnv,
+# bluefeels's shell setup. The toolkit's shell/init.sh sources it (bash and zsh) before direnv,
 # starship and the tools load. $_work_root is the toolkit's folder.
 _fk="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.." && pwd)"
 # k-bg keeps a copy of starship.toml with the background's accent colours in it;
