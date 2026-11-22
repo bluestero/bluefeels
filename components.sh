@@ -4,24 +4,26 @@
 # come from the toolkit's lib/components.sh, which loads this file at its end.
 fk="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-COMPONENTS+=(kitty-bg kitty-theme kitty-accents kitty-icons kitty-centered dash2dock dash-to-panel no-animations vitals vitals-icons blur-my-shell rounded-corners)
+COMPONENTS+=(kitty-bg kitty-theme kitty-accents kitty-icons kitty-centered dash2dock dash-to-panel no-animations notification-key vitals vitals-icons blur-my-shell rounded-corners)
 # Its parts are fk's (the file "kit"): fk install / fk uninstall, never in
 # tk install. Its tabs (a layer names its own groups), what each needs from the machine, and
 # which ones have a settings menu (fk install <id> on an installed one).
 group_kitty_bg() { echo "Kitty looks"; }; group_kitty_theme() { echo "Kitty looks"; }; group_kitty_accents() { echo "Kitty looks"; }
 group_kitty_icons() { echo "Kitty looks"; }; group_kitty_centered() { echo "Kitty looks"; }
 group_dash2dock() { echo "GNOME looks"; }; group_dash_to_panel() { echo "GNOME looks"; }
-group_no_animations() { echo "GNOME looks"; }; group_vitals() { echo "GNOME looks"; }
+group_no_animations() { echo "GNOME looks"; }; group_notification_key() { echo "GNOME looks"; }
+group_vitals() { echo "GNOME looks"; }
 group_vitals_icons() { echo "GNOME looks"; }; group_blur_my_shell() { echo "GNOME looks"; }
 group_rounded_corners() { echo "GNOME looks"; }
 GROUP_ABOUT["Kitty looks"]="How kitty looks: background images, colour themes, accents from the background, app icons, centred windows."
-GROUP_ABOUT["GNOME looks"]="How GNOME looks: one bar or a dock, Vitals in the top bar, blur, rounded corners, no animations."
+GROUP_ABOUT["GNOME looks"]="How GNOME looks: one bar or a dock, Vitals in the top bar, blur, rounded corners, no animations, Super+V alone opens notifications."
 # Dash2Dock and Dash to Panel both sit on the bottom edge: with both ticked (or one ticked
 # and the other in already) the summary asks once.
 CLASHES+=("dash2dock dash-to-panel|Both bars use the same space. Keep both?")
 requires_kitty_bg() { echo apt; }; requires_kitty_icons() { echo apt; }
 requires_kitty_centered() { echo gnome; }; requires_dash2dock() { echo gnome; }
 requires_dash_to_panel() { echo gnome; }; requires_no_animations() { echo gnome; }
+requires_notification_key() { echo gnome; }
 requires_vitals() { echo gnome; }; requires_vitals_icons() { echo gnome; }
 requires_blur_my_shell() { echo gnome; }; requires_rounded_corners() { echo gnome; }
 LOOK_PARTS+=(dash-to-panel vitals blur-my-shell rounded-corners)
@@ -198,6 +200,26 @@ uninstall_no_animations() {
   [[ -n "$prev" ]] || { ok "nothing of ours to undo"; return; }
   gsettings set "$anim_schema" "$anim_key" "$prev" && ok "back to $prev"
   forget_setting no-animations
+}
+
+# ---------------------------------------------------- notification-key ---
+# GNOME opens the notification list with Super+V and the older Super+M. Super+V alone leaves
+# Super+M free; with Dash to Panel the list is bottom right while popups show top centre.
+nk_schema=org.gnome.shell.keybindings nk_key=toggle-message-tray
+label_notification_key() { echo "Super+V alone for notifications"; }
+title_notification_key() { echo "Only Super+V opens the notification list (Super+M freed)"; }
+detail_notification_key() { echo "GNOME setting $nk_schema $nk_key = ['<Super>v'] (the uninstall puts back GNOME's default, Super+V and Super+M)"; }
+state_notification_key() { NOTE=""
+  type -P gsettings >/dev/null && gsettings list-keys "$nk_schema" 2>/dev/null | grep -qx "$nk_key" ||
+    { STATE=unsupported; NOTE="needs GNOME"; return; }
+  if [[ "$(gsettings get "$nk_schema" "$nk_key")" == "['<Super>v']" ]]; then STATE=installed; else STATE=missing; fi; }
+install_notification_key() {
+  [[ "$(gsettings get "$nk_schema" "$nk_key")" == "['<Super>v']" ]] && { ok "already Super+V only"; return; }
+  ask "Open notifications with Super+V only (free Super+M)?" || { skip; return; }
+  gsettings set "$nk_schema" "$nk_key" "['<Super>v']" && ok "Super+V only"
+}
+uninstall_notification_key() {
+  gsettings reset "$nk_schema" "$nk_key" && ok "back to Super+V and Super+M"
 }
 
 # --------------------------------------------------------------- vitals ---

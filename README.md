@@ -56,6 +56,7 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 | `blur-my-shell` | Blur my Shell (GNOME extension) from extensions.gnome.org with an optional look from `bluefeels/gnome/blur-my-shell/` (blurred overview in Liquid Glass and Alt+Tab, applications untouched). Same settings menu as `vitals`; log out once after installing |
 | `rounded-corners` | Rounded Window Corners Reborn (GNOME extension) from extensions.gnome.org with an optional look from `bluefeels/gnome/rounded-window-corners/` (15 px, off for maximized and fullscreen windows). Same settings menu as `vitals`; log out once after installing |
 | `no-animations` | GNOME setting `org.gnome.desktop.interface enable-animations = false`: no window zoom animations (snappier, and no blurry flash when the rofi launcher opens and closes fast); asked with default No: browsers then reduce motion too (websites drop their CSS animations); old value put back on uninstall |
+| `notification-key` | GNOME setting `org.gnome.shell.keybindings toggle-message-tray = ['<Super>v']`: only Super+V opens the notification list, Super+M is freed (handy with `dash-to-panel`, where the list sits bottom right while popups show top centre); the uninstall puts back GNOME's default (Super+V and Super+M) |
 
 ## What's in the folder
 
