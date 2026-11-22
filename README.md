@@ -61,7 +61,8 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 
 ```
 components.sh     the installer components (kitty-bg, kitty-theme, ..., rounded-corners)
-bin/              k-bg, k-theme, k-icon, k-rofi; fk-looks and fk-dash2dock (`fk looks`, `fk dash2dock`)
+bin/              k-bg, k-theme, k-icon, k-rofi
+fk/               dash2dock (`fk dash2dock`); the extensions' presets are in `fk configs` (config_<id> in components.sh)
 shell/            init.sh (loaded by every shell) and the tab-completion hooks
 tools             what fk's picker and `fk help` show for these commands
 backgrounds/      the images k-bg offers (licences in backgrounds/SOURCES.md)

@@ -208,6 +208,7 @@ label_vitals() { echo "Vitals"; }
 title_vitals() { echo "CPU, memory and temperature in the top bar (GNOME extension; log out once)"; }
 detail_vitals() { echo "GNOME extension $vt_uuid from extensions.gnome.org + preset look bluefeels/gnome/vitals (sensors shown, fixed widths); the uninstall offers your earlier settings or the defaults"; }
 state_vitals() { gx_state "$vt_uuid" "$vt_path" "$vt_file"; }
+config_vitals() { echo "dconf|Vitals|$vt_uuid|$vt_path|$vt_file|$vt_uuid|CPU, memory and network readings in the top bar|"; }
 install_vitals() { gx_install "$vt_uuid" "Vitals" "$vt_path" "$vt_file"; }
 uninstall_vitals() { gx_uninstall "$vt_uuid" "Vitals" "$vt_path"; }
 
@@ -218,6 +219,7 @@ label_blur_my_shell() { echo "Blur my Shell"; }
 title_blur_my_shell() { echo "Blurred overview and Alt+Tab (GNOME extension; log out once)"; }
 detail_blur_my_shell() { echo "GNOME extension $bm_uuid from extensions.gnome.org + preset look bluefeels/gnome/blur-my-shell; the uninstall offers your earlier settings or the defaults"; }
 state_blur_my_shell() { gx_state "$bm_uuid" "$bm_path" "$bm_file"; }
+config_blur_my_shell() { echo "dconf|Blur my Shell|$bm_uuid|$bm_path|$bm_file|$bm_uuid|blurs the top bar, the overview and the dock|"; }
 install_blur_my_shell() { gx_install "$bm_uuid" "Blur my Shell" "$bm_path" "$bm_file"; }
 uninstall_blur_my_shell() { gx_uninstall "$bm_uuid" "Blur my Shell" "$bm_path"; }
 
@@ -228,6 +230,7 @@ label_rounded_corners() { echo "Rounded corners"; }
 title_rounded_corners() { echo "Rounded corners on every window (GNOME extension; log out once)"; }
 detail_rounded_corners() { echo "GNOME extension $rc_uuid from extensions.gnome.org + preset look bluefeels/gnome/rounded-window-corners (15 px); the uninstall offers your earlier settings or the defaults"; }
 state_rounded_corners() { gx_state "$rc_uuid" "$rc_path" "$rc_file"; }
+config_rounded_corners() { echo "dconf|Rounded Window Corners|$rc_uuid|$rc_path|$rc_file|$rc_uuid|rounded corners on every window|"; }
 install_rounded_corners() { gx_install "$rc_uuid" "Rounded Window Corners" "$rc_path" "$rc_file"; }
 uninstall_rounded_corners() { gx_uninstall "$rc_uuid" "Rounded Window Corners" "$rc_path"; }
 
@@ -353,6 +356,7 @@ dtp_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | g
 label_dash_to_panel() { echo "One bar (Dash to Panel)"; }
 title_dash_to_panel() { echo "dock and top bar merged into one bar, no Activities button (log out once)"; }
 detail_dash_to_panel() { echo "GNOME extension $dtp_uuid from extensions.gnome.org + preset look bluefeels/gnome/dash-to-panel; turns Ubuntu's dock off (put back by the uninstall)"; }
+config_dash_to_panel() { echo "dconf|Dash to Panel|$dtp_uuid|$dtp_path|$dtp_src/settings.dconf|dash-to-panel|a taskbar in place of the top bar and the dock|$dtp_ignore"; }
 state_dash_to_panel() { NOTE=""
   type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
   if dtp_present && dtp_enabled; then
