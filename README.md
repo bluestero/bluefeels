@@ -1,6 +1,6 @@
 # bluefeels
 
-A look for [unix-toolkit](https://github.com/bluestero/unix-toolkit): a layer whose parts are the
+A look for [unikit](https://github.com/bluestero/unikit): a layer whose parts are the
 fk kit's (the toolkit's `fk` is empty until a layer like this one fills it). Everything here is
 only about looks, so the toolkit itself stays about work.
 
@@ -24,7 +24,7 @@ ticked, or one is ticked and the other already in); the other can be added or re
 You need the toolkit first (see its README), then:
 
 ```bash
-uk layer add https://github.com/bluestero/unix-feelkit.git bluefeels   # clones into layers/bluefeels, offers to set it up
+uk layer add https://github.com/bluestero/bluefeels.git bluefeels   # clones into layers/bluefeels, offers to set it up
 ```
 
 Its parts are fk's (the file `kit`), so `fk install` sets them up, never `tk install`:
