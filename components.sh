@@ -38,7 +38,7 @@ kapp_desktop_ok() { grep -q "^Exec=$kapp_bin" "$kitty_desktop" 2>/dev/null; }
 term_alt() { update-alternatives --query x-terminal-emulator 2>/dev/null | sed -n 's/^Value: //p'; }
 
 label_kitty() { echo "Kitty (latest)"; }
-title_kitty() { echo "The kitty terminal itself, latest release (Ubuntu's is years old)"; }
+title_kitty() { echo "The kitty terminal itself, kept on its latest official release (Ubuntu's apt one lags behind)"; }
 detail_kitty() { echo "official build in ~/.local/kitty.app, kitty/kitten in ~/.local/bin, app menu entry; apt kitty kept as a fallback"; }
 state_kitty() {
   NOTE=""
