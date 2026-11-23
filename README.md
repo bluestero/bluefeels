@@ -1,8 +1,9 @@
 # bluefeels
 
 A look for [unikit](https://github.com/bluestero/unikit): a layer whose parts are the
-fk kit's (the toolkit's `fk` is empty until a layer like this one fills it). Everything here is
-only about looks, so the toolkit itself stays about work.
+fk kit's (unikit's `fk` is empty until a layer like this one fills it). How things look and feel:
+kitty, the shell (starship, zsh, keys, btop, yazi), the GNOME desktop (rofi, app keys, extensions)
+and Claude's coding guidelines.
 
 | Part | What it gives you |
 |---|---|
@@ -13,8 +14,10 @@ only about looks, so the toolkit itself stays about work.
 | `k-rofi` | Writes rofi's colours from the kitty theme and background in use |
 | kitty accents, centered windows | Prompt, pickers, cursor and selection follow the background; new windows open in the middle |
 | GNOME presets | Dash to Panel (one bar) or Dash2Dock, Vitals (+ chip icons), Blur my Shell, rounded corners, no window animations |
+| the shell | starship prompt, zsh with suggestions, Tab and history keys, btop, yazi (`y`), your old `~/.bashrc` tidied |
+| the desktop | rofi launcher (Alt+Space, Super+S, Super+X), Super+1..9 app keys, Alt+Tab after Show Desktop, Docker's tray dots hidden |
 
-The toolkit works without it: rofi and btop just keep their default colours.
+Their presets (kitty, starship, btop, rofi, readline, yazi keys, the extensions' looks) are in `fk configs`.
 
 Dash to Panel and Dash2Dock both sit on the bottom edge of the screen, so installing both gives
 two bars on top of each other. Pick one (`fk install` asks once when both are
@@ -31,13 +34,13 @@ uk layer add https://github.com/bluestero/bluefeels.git bluefeels   # clones int
 Its parts are fk's (the file `kit`), so `fk install` sets them up, never `tk install`:
 
 ```bash
-fk install            # a tab each for Kitty looks and GNOME looks, then a summary; enter sets it up
+fk install            # a tab per group (Kitty, Shell, Terminal apps, Desktop, Kitty looks, GNOME looks, Claude Code), then a summary
 fk install kitty-theme   # just that part (fk install ls lists them)
 fk uninstall          # remove parts, your own settings put back
 ```
 
-`uk update` keeps it current (bluefeels has its own tab there: fixes, new parts, clean-ups), `tk status` and
-`tk doctor` show one line on how much of it is set up. Everything asks first.
+`uk update` keeps it current (bluefeels has its own tab there: fixes, new parts, clean-ups), `uk status` and
+`fk doctor` show how much of it is set up. Everything asks first.
 
 ## Parts
 
