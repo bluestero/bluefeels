@@ -91,7 +91,7 @@ def test_btop_menu_changes_kept_as_my_patch(sb):
     t.key("y")
     t.wait_for("your patch now")
     t.wait_for("+ my patch")
-    assert "rounded_corners = False" in sb.read("~/.config/work-toolkit/patches/btop.conf")
+    assert "rounded_corners = False" in sb.read("~/.config/unikit/patches/btop.conf")
     assert "rounded_corners = False" in open(conf).read(), "btop keeps the change"
 
 
@@ -106,7 +106,7 @@ def test_esc_goes_back_then_closes(sb):
 
 KITTY = "~/.config/kitty/kitty.conf"
 KITTY_PRESET = os.path.join(LAYER, "kitty/kitty.conf")
-PATCH = "~/.config/work-toolkit/patches/kitty.conf"
+PATCH = "~/.config/unikit/patches/kitty.conf"
 
 
 def start_kitty(sb):
@@ -151,7 +151,7 @@ def test_drop_my_patch_keeps_a_copy(sb):
 
 
 STAR = "~/.config/starship.toml"
-MERGED = "~/.local/state/work-toolkit/starship.toml"
+MERGED = "~/.local/state/unikit/starship.toml"
 
 
 def start_starship(sb, edit):

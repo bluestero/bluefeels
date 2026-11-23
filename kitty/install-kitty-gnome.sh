@@ -15,7 +15,7 @@ changed=0
 as_root() { if [[ $EUID -eq 0 ]]; then "$@"; else sudo "$@"; fi; }
 # Your settings before the first change, so the uninstall puts back yours (not
 # the system default). Same file as ../lib/setup.sh uses; kept once, never overwritten.
-ORIG_SETTINGS="$HOME/.local/state/work-toolkit/originals/settings"
+ORIG_SETTINGS="$HOME/.local/state/unikit/originals/settings"
 remember() {
     mkdir -p "$(dirname "$ORIG_SETTINGS")"
     grep -q "^$1=" "$ORIG_SETTINGS" 2>/dev/null || printf '%s=%s\n' "$1" "$2" >>"$ORIG_SETTINGS"

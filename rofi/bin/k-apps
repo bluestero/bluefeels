@@ -5,7 +5,7 @@ an app to start it. (Rofi's own window list only sees X11 windows, not GNOME's
 Wayland ones, so the windows come from the Window Calls extension.)"""
 import glob, json, os, subprocess, sys, time
 
-LOG = os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "work-toolkit", "launch.log")
+LOG = os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "unikit", "launch.log")
 
 
 def log(msg):

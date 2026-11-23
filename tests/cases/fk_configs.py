@@ -102,4 +102,4 @@ def test_keep_my_changes_as_my_patch(sb):
     t.key("enter")
     t.wait_for("your patch now")
     t.wait_for("+ my patch")
-    assert sb.read(f"~/.config/work-toolkit/patches/{VITALS}.dconf").strip() == "[/]\nhide-zeros=true"
+    assert sb.read(f"~/.config/unikit/patches/{VITALS}.dconf").strip() == "[/]\nhide-zeros=true"

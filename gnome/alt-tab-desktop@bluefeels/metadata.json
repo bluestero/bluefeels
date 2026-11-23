@@ -1,5 +1,5 @@
 {
-  "uuid": "alt-tab-desktop@work-toolkit",
+  "uuid": "alt-tab-desktop@bluefeels",
   "name": "Alt+Tab after Show Desktop",
   "description": "After Super+D (show desktop), Alt+Tab goes back to the window you minimized, not the one before it.",
   "shell-version": ["45", "46", "47", "48", "49"]

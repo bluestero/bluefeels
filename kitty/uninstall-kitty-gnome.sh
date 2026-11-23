@@ -12,7 +12,7 @@ changed=0
 
 as_root() { if [[ $EUID -eq 0 ]]; then "$@"; else sudo "$@"; fi; }
 # What you had before install-kitty-gnome.sh (it keeps it here), so yours comes back.
-ORIG_SETTINGS="$HOME/.local/state/work-toolkit/originals/settings"
+ORIG_SETTINGS="$HOME/.local/state/unikit/originals/settings"
 recall() { sed -n "s/^$1=//p" "$ORIG_SETTINGS" 2>/dev/null | head -1; }
 forget() { [[ -f "$ORIG_SETTINGS" ]] && sed -i "/^$1=/d" "$ORIG_SETTINGS"; return 0; }
 

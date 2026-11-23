@@ -182,7 +182,7 @@ ss="$HOME/.config/starship.toml"; ss_src="$fk/starship/starship.toml"
 label_starship() { echo "Starship prompt"; }
 config_starship() { echo "file|starship|starship|$ss|$ss_src|link|starship.toml|the prompt"; }
 # your patch merged over the preset (shell/init.sh does the same at start); prints an error
-ss_merged="$HOME/.local/state/work-toolkit/starship.toml"; ss_patch="$HOME/.config/work-toolkit/patches/starship.toml"
+ss_merged="$HOME/.local/state/unikit/starship.toml"; ss_patch="$HOME/.config/unikit/patches/starship.toml"
 ss_merge() {
   if [[ -f $ss_patch && -e $ss ]]; then python3 -I "$fk/starship/toml_patch.py" "$ss" "$ss_patch" "$ss_merged" 2>&1 | sed "s|^$HOME|~|; s|^|✗ starship: your patch has an error: |"
   else rm -f "$ss_merged"; fi
@@ -361,7 +361,7 @@ bt="$HOME/.config/btop/btop.conf"; bt_src="$fk/btop/btop.conf"
 # btop can't include a second file and writes its own config when you change a setting in
 # its menu, so it gets a file of its own: the preset with your patch laid over it
 # (fk configs). bt_made keeps the checksum of what the toolkit last wrote.
-bt_patch="$HOME/.config/work-toolkit/patches/btop.conf"; bt_made="$log_dir/originals/configs/btop.made"
+bt_patch="$HOME/.config/unikit/patches/btop.conf"; bt_made="$log_dir/originals/configs/btop.made"
 bt_merge() {   # the preset, your patch's "key = value" lines in place of its own (new ones at the end)
   awk 'function k(l) { sub(/[ \t]*=.*/, "", l); return l }
     FILENAME == ARGV[1] { if ($0 ~ /^[A-Za-z_]+[ \t]*=/) { if (!(k($0) in p)) o[++n] = k($0); p[k($0)] = $0 }; next }
@@ -606,7 +606,7 @@ PY
 # ------------------------------------------------------ alt-tab-desktop ---
 # After Super+D (show desktop), Alt+Tab goes back to the window you minimized,
 # not the one before it. Small GNOME extension kept in bluefeels/gnome/ and linked in.
-atd_uuid="alt-tab-desktop@work-toolkit"
+atd_uuid="alt-tab-desktop@bluefeels"
 atd_dir="$HOME/.local/share/gnome-shell/extensions/$atd_uuid"; atd_src="$fk/gnome/$atd_uuid"
 atd_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$atd_uuid'"; }
 label_alt_tab_desktop() { echo "Alt+Tab after Show Desktop"; }
@@ -632,8 +632,8 @@ uninstall_alt_tab_desktop() {
 
 # ------------------------------------------------------ hide-docker-tray ---
 # Docker Desktop's tray item has no icon and an empty menu: three dots that do nothing on click.
-# Small GNOME extension (bluefeels/gnome/hide-docker-tray@work-toolkit), linked in, that keeps it hidden.
-hdt_uuid="hide-docker-tray@work-toolkit"
+# Small GNOME extension (bluefeels/gnome/hide-docker-tray@bluefeels), linked in, that keeps it hidden.
+hdt_uuid="hide-docker-tray@bluefeels"
 hdt_dir="$HOME/.local/share/gnome-shell/extensions/$hdt_uuid"; hdt_src="$fk/gnome/$hdt_uuid"
 hdt_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$hdt_uuid'"; }
 label_hide_docker_tray() { echo "Hide Docker's tray dots"; }
@@ -683,7 +683,7 @@ state_rofi() { NOTE=""
   linked "$rofi_conf" "$rofi_src" && (( n++ ))
   rofi_keys_on && (( n++ ))
   launcher_entry_set && (( n++ ))
-  [[ -e $HOME/.config/work-toolkit/patches/rofi.rasi ]] && (( n++ ))   # config.rasi @imports it
+  [[ -e $HOME/.config/unikit/patches/rofi.rasi ]] && (( n++ ))   # config.rasi @imports it
   if (( n == 5 )); then STATE=installed; elif (( n )); then STATE=partial; else STATE=missing; fi; }
 k_launch="$fk/rofi/bin/k-launch"
 rofi_keys_on() { kb_runs rofi-launcher "$k_launch apps" && kb_runs rofi-ssh "$k_launch ssh" &&
@@ -697,7 +697,7 @@ install_rofi() {
   if linked "$rofi_conf" "$rofi_src"; then ok "rofi style already linked"
   else ask "Use bluefeels' rofi style? (your own is kept as a backup)" && link_file "$rofi_conf" "$rofi_src" || { skip; return 0; }; fi
   # config.rasi @imports your patch and rofi errors when it is missing, so it must exist
-  local rp="$HOME/.config/work-toolkit/patches/rofi.rasi"
+  local rp="$HOME/.config/unikit/patches/rofi.rasi"
   [[ -e $rp ]] || dry || { mkdir -p "${rp%/*}" && printf "// Your patch for rofi: read after the toolkit's preset, so what you set here wins.\n" >"$rp"; }
   dry || "$fk/bin/k-rofi" >>"$log_file" 2>&1 && ok "colours follow k-theme and k-bg"
   if launcher_entry_set; then ok "launcher icon already installed"
@@ -1192,7 +1192,7 @@ d2d_uuid="dash2dock-lite@icedman.github.com"
 d2d_dir="$HOME/.local/share/gnome-shell/extensions/$d2d_uuid"; d2d_src="$fk/gnome/dash2dock"
 d2d_path=/org/gnome/shell/extensions/dash2dock-lite/
 d2d_present() { [[ -d "$d2d_dir" ]]; }
-d2d_patched() { grep -q "work-toolkit patch" "$d2d_dir/dock.js" 2>/dev/null; }
+d2d_patched() { grep -qE "(bluefeels|work-toolkit) patch" "$d2d_dir/dock.js" 2>/dev/null; }   # (work-toolkit: its old name)
 # a release our patches don't fit: it runs without them, and asking again changes nothing
 d2d_unfit() { ! patch -p1 -N --dry-run -s -d "$d2d_dir" <"$d2d_src/dash2dock.patch" >/dev/null 2>&1; }
 d2d_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$d2d_uuid'"; }

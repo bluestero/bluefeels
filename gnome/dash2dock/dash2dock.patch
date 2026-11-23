@@ -22,7 +22,7 @@
  
        dash._adjustIconSize = () => {};
 +
-+      // work-toolkit patch: stable drop slot while dragging an icon. Uses the real
++      // bluefeels patch: stable drop slot while dragging an icon. Uses the real
 +      // pointer position against the box on screen, and only changes slot after
 +      // the pointer is clearly inside the next one (no back-and-forth flicker).
 +      {
@@ -82,7 +82,7 @@
        });
      }
  
-+    // work-toolkit patch: a plain click on an app with several
++    // bluefeels patch: a plain click on an app with several
 +    // windows shows a picker with a live thumbnail of each window.
 +    _maybeShowWindowPicker(c) {
 +      let app = c._appwell?.app;
@@ -191,7 +191,7 @@
 -          iconSize * 0.2 * scaleFactor +
 -          edge_distance -
 -          dock._background._padding * scaleFactor;
-+        // work-toolkit patch: reserve exactly the drawn panel (no extra headroom gap)
++        // bluefeels patch: reserve exactly the drawn panel (no extra headroom gap)
 +        dock.struts.height = dock._background.height + edge_distance;
  
          if (dock.extension.autohide_dash) {

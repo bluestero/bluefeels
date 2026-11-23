@@ -23,7 +23,7 @@ case "$mode" in
 esac
 
 # timings go to launch.log (apps, devices and this script all write there), to find the odd 1-2 s open
-LOG=${XDG_CACHE_HOME:-$HOME/.cache}/work-toolkit/launch.log
+LOG=${XDG_CACHE_HOME:-$HOME/.cache}/unikit/launch.log
 mkdir -p "${LOG%/*}"
 [[ $(stat -c %s "$LOG" 2>/dev/null || echo 0) -gt 200000 ]] && { tail -n 500 "$LOG" > "$LOG.tmp" && mv "$LOG.tmp" "$LOG"; }
 now() { local t=$EPOCHREALTIME; echo "${t/[.,]/}"; }            # microseconds
