@@ -1,6 +1,10 @@
 # bluefeels's shell setup. The toolkit's shell/init.sh sources it (bash and zsh), layers by
 # name (bluefeels before bluetools), then its own tools. $_work_root is the toolkit's folder.
 _fk="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.." && pwd)"
+# zsh's own setup (history, keys, Tab menu, suggestions), then the aliases, PATH and env
+# both shells get.
+[ -n "${ZSH_VERSION:-}" ] && [ -r "$_fk/zsh/zshrc" ] && . "$_fk/zsh/zshrc"
+[ -r "$_fk/shell/common.sh" ] && . "$_fk/shell/common.sh"
 # Your starship patch (fk configs: edit my patch) laid over the preset: starship can't read
 # two files, so they're merged into one, made again when either changes. First: k-bg
 # (below) colours this file when it's there.

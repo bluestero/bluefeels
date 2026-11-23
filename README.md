@@ -52,6 +52,10 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 | `yazi` | yazi 26.9.1 (terminal file manager) from GitHub in `~/.local/bin`, checked against a pinned sha256; also `ya`. The `y` command (`bluefeels/shell/y.sh`, loaded by its `shell/init.sh`) opens it and leaves your shell in the folder you quit in (`q`; `Q` quits without cd). Colours follow the kitty theme through the terminal palette. Uninstall removes the binaries; `~/.config/yazi` stays |
 | `yazi-keys` | Two keys for yazi: `>` picks a folder inside the current one with fzf (up to 6 levels, no hidden folders), and ctrl+backspace deletes a word in yazi's text fields. Written as one marked block (`# >>> work toolkit >>>`) in `~/.config/yazi/keymap.toml`, from `bluefeels/yazi/keymap.toml`: added to your file if you have one (the rest stays yours), the file is made if not; if yours already has `prepend_keymap = [ ... ]` lines it says so and leaves it alone. Uninstall removes only the block |
 | `starship` | `~/.config/starship.toml` → `bluefeels/starship/starship.toml`, and starship itself (latest from GitHub, sha256-checked) in `~/.local/bin` if it isn't installed |
+| `keys` | `~/.inputrc` → `bluefeels/shell/inputrc` (case-insensitive Tab, Up/Down search by what's typed) |
+| `zsh` | apt `zsh zsh-autosuggestions`; `~/.zshenv` gets one managed block |
+| `login-shell` | `chsh` to zsh (log out once) |
+| `bashrc-tidy` | Your old `~/.bashrc`: PATH, nvm, direnv/starship hooks and exact copies of `shell/common.sh`'s aliases come out (both shells get them from bluefeels), clashing leftovers (ble.sh, old okcli hooks, duplicate nvm) go; unikit's own line stays. Uninstall puts your lines back |
 | `kitty-bg` | apt `imagemagick` (and fzf if there's none) for the `k-bg` picker, then a first pick (live preview; Esc = no background). Uninstall: background off, resized copies removed |
 | `kitty-theme` | kitty's theme collection (about 0.6 MB from GitHub), a current fzf if yours is older than 0.60, then an optional first pick with `k-theme`. Uninstall: back to kitty's colours (your Mine list stays) |
 | `kitty-accents` | `k-bg accents on`: a vivid colour from the background (always readable against it, never red) for the prompt's directory, `❯` and git branch, the toolkit's pickers and highlights, and kitty's cursor, selection, links, active tab and border. Terminal colours and red prod warnings stay put |
@@ -66,13 +70,20 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 | `no-animations` | GNOME setting `org.gnome.desktop.interface enable-animations = false`: no window zoom animations (snappier, and no blurry flash when the rofi launcher opens and closes fast); asked with default No: browsers then reduce motion too (websites drop their CSS animations); old value put back on uninstall |
 | `notification-key` | GNOME setting `org.gnome.shell.keybindings toggle-message-tray = ['<Super>v']`: only Super+V opens the notification list, Super+M is freed (handy with `dash-to-panel`, where the list sits bottom right while popups show top centre); the uninstall puts back GNOME's default (Super+V and Super+M) |
 
+## zsh
+
+`zsh/zshrc` is small: shared history, the bash keys, an arrow-key Tab menu (case-insensitive),
+and faded grey suggestions from history (Shift+Tab, → or End accepts, Alt+F one word; Tab is normal completion).
+`~/.zshrc` loads unikit's `shell/init.sh` (its `zsh-hook` part), which loads this layer's
+`shell/init.sh`, which loads `zsh/zshrc` first: zsh gets exactly the same aliases and tools as bash. Your own zsh tweaks go in `~/.zshrc` outside the managed block.
+
 ## What's in the folder
 
 ```
 components.sh     the installer components (kitty-bg, kitty-theme, ..., rounded-corners)
 bin/              k-config, k-bg, k-theme, k-icon, k-rofi
 fk/               dash2dock (`fk dash2dock`); the extensions' presets are in `fk configs` (config_<id> in components.sh)
-shell/            init.sh (loaded by every shell) and the tab-completion hooks
+shell/            init.sh (loaded by every shell), common.sh (aliases, PATH, nvm), inputrc, y.sh and the tab-completion hooks
 tools             what fk's picker and `fk help` show for these commands
 backgrounds/      the images k-bg offers (licences in backgrounds/SOURCES.md)
 themes/           team themes for k-theme (yours go in ~/.config/kitty/themes)
@@ -80,6 +91,8 @@ kitty-icons/      the kitty icon installer and cleanup
 starship/         starship.toml (the prompt) and toml_patch.py (your patch laid over it)
 btop/             btop.conf (btop)
 yazi/             keymap.toml (yazi-keys)
+zsh/              zshrc (zsh's own setup, loaded by shell/init.sh in zsh)
+bash/             bashrc_plan.py and bashrc_restore.py (the bashrc-tidy part)
 kitty/            kitty.conf (kitty-config), the "Open in Terminal" / Ctrl+Alt+T installer, bin/kitty-focus
 gnome/            one folder per GNOME extension: the preset look (settings.dconf), patches
                   (dash2dock/check-patch.sh tries the patch against the newest release: `fk dash2dock`)

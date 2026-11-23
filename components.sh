@@ -167,12 +167,15 @@ uninstall_kitty_nautilus() { bash "$fk/kitty/uninstall-kitty-gnome.sh"; }
 # ------------------------------------------------------ Shell & apps ---
 # The prompt (starship), btop and yazi (came from unikit, tasks/14). Their presets are in
 # fk configs (config_<id>).
-COMPONENTS+=(starship btop yazi yazi-keys)
+COMPONENTS+=(starship keys zsh login-shell bashrc-tidy btop yazi yazi-keys)
+group_keys() { echo Shell; }; group_zsh() { echo Shell; }; group_login_shell() { echo Shell; }
+group_bashrc_tidy() { echo Shell; }; requires_zsh() { echo apt; }; requires_login_shell() { echo linux; }
+NEEDS+=([login-shell]=zsh [bashrc-tidy]=bash)
 group_starship() { echo Shell; }; group_btop() { echo "Terminal apps"; }
 group_yazi() { echo "Terminal apps"; }; group_yazi_keys() { echo "Terminal apps"; }
 requires_btop() { echo apt; }; requires_yazi() { echo linux; }; requires_yazi_keys() { echo linux; }
 NEEDS+=([yazi-keys]=yazi)
-GROUP_ABOUT[Shell]="Your shell: the starship prompt."
+GROUP_ABOUT[Shell]="Your shell: the starship prompt, Tab and history keys, zsh (and as your default), your old ~/.bashrc tidied."
 GROUP_ABOUT["Terminal apps"]="btop (system monitor) and yazi (file manager; y opens it), coloured like kitty."
 # ------------------------------------------------------------ starship ---
 ss="$HOME/.config/starship.toml"; ss_src="$fk/starship/starship.toml"
@@ -203,6 +206,153 @@ fetch_starship() { local a; case "$(dl_arch)" in amd64) a=x86_64 ;; arm64) a=aar
   gh_tool starship/starship "starship-$a-unknown-linux-musl.tar.gz" starship; }
 uninstall_starship() { unlink_file "$ss" "$ss_src"; drop_tool starship; }
 touches_starship() { echo "$ss"; }
+
+# ---------------------------------------------------------------- keys ---
+inputrc_src="$fk/shell/inputrc"
+label_keys() { echo "Tab & history keys"; }
+config_keys() { echo "file|readline|bash|$HOME/.inputrc|$inputrc_src|link|inputrc|keys at the bash prompt (~/.inputrc)"; }
+title_keys() { echo "Smarter Tab completion; ↑/↓ searches history by what you typed"; }
+detail_keys() { echo "~/.inputrc for bash (case-insensitive Tab, Up/Down search by what's typed)"; }
+state_keys() { NOTE=""; if linked "$HOME/.inputrc" "$inputrc_src"; then STATE=installed; else STATE=missing; fi; }
+install_keys() { linked "$HOME/.inputrc" "$inputrc_src" && { ok "already linked"; return; }
+  ask "Link ~/.inputrc to shell/inputrc?" && link_file "$HOME/.inputrc" "$inputrc_src" || skip; }
+uninstall_keys() { unlink_file "$HOME/.inputrc" "$inputrc_src"; }
+touches_keys() { echo "$HOME/.inputrc"; }
+
+# ----------------------------------------------------------------- zsh ---
+zsh_pkgs=(zsh zsh-autosuggestions)
+# Debian's /etc/zsh/zshrc runs compinit too; zsh/zshrc does it once, cached.
+zshenv_body="skip_global_compinit=1"
+label_zsh() { echo "Zsh"; }
+title_zsh() { echo "Install zsh with suggestions as you type"; }
+detail_zsh() { echo "zsh + faded suggestions; history, keys and the Tab menu (zsh/zshrc)"; }
+touches_zsh() { echo "$HOME/.zshenv"; }
+state_zsh() {
+  local n=0 missing
+  missing=$(missing_pkgs "${zsh_pkgs[@]}")
+  [[ -z "$missing" ]] && (( n++ ))
+  has_block "$HOME/.zshenv" "$zshenv_body" && (( n++ ))
+  NOTE=""
+  if (( n == 2 )); then STATE=installed
+  elif (( n )); then STATE=partial; NOTE="${missing:+packages missing: $missing}"
+  else STATE=missing; fi
+}
+install_zsh() {
+  local missing; missing=$(missing_pkgs "${zsh_pkgs[@]}")
+  if [[ -n "$missing" ]]; then
+    if ask "Install $missing(apt, needs sudo)?"; then
+      apt_install "${zsh_pkgs[@]}" && ok "installed" || { fail "apt failed (see $log_file)"; return 1; }
+    else skip; return 0; fi
+  fi
+  if has_block "$HOME/.zshenv" "$zshenv_body"; then ok "zsh config already set up"
+  elif ask "Set up ~/.zshenv (one managed block)?"; then
+    set_block "$HOME/.zshenv" "$zshenv_body"
+    ok "done. Try it now with: ${C}zsh${R}"
+  else skip; return 0; fi
+  has_block "$HOME/.zshrc" "$zsh_hook_body" || warn "zsh loads unikit once zsh-hook is set up too: tk install zsh-hook"
+}
+uninstall_zsh() {
+  if [[ "$(login_shell)" == */zsh ]]; then
+    warn "zsh is your login shell; switching back to bash first"
+    uninstall_login_shell || return 1
+  fi
+  drop_block "$HOME/.zshenv"
+  ok "removed the toolkit from ~/.zshenv"
+  local have=""; pkg_installed zsh && have=1
+  if [[ -n "$have" ]] && ask "Also remove the zsh packages (apt, needs sudo)?" n; then
+    as_root apt-get remove -y "${zsh_pkgs[@]}" >>"$log_file" 2>&1 && ok "packages removed" || fail "apt failed (see $log_file)"
+  fi
+}
+
+# --------------------------------------------------------- login-shell ---
+login_shell() { getent passwd "$USER" | cut -d: -f7; }
+label_login_shell() { echo "Zsh as default"; }
+title_login_shell() { echo "Open new terminals in zsh (log out once afterwards)"; }
+detail_login_shell() { echo "make zsh your default shell (new terminals; log out once for GNOME)"; }
+state_login_shell() { NOTE=""
+  type -P zsh >/dev/null || { STATE=n/a; NOTE="needs zsh first"; return; }
+  if [[ "$(login_shell)" == */zsh ]]; then STATE=installed; else STATE=missing; NOTE="now: $(login_shell)"; fi; }
+install_login_shell() {
+  local z; z=$(type -P zsh) || { skip "zsh isn't installed"; return; }
+  [[ "$(login_shell)" == "$z" ]] && { ok "already zsh"; return; }
+  if ask "Make zsh your login shell (chsh asks for your password)?"; then
+    remember_setting login-shell "$(login_shell)"
+    chsh -s "$z" && ok "done. Log out and back in so GNOME and kitty pick it up" || fail "chsh failed"
+  else skip; fi
+}
+uninstall_login_shell() {   # back to the shell you had before (bash if unknown)
+  local prev; prev=$(recall_setting login-shell)
+  [[ -n "$prev" && "$prev" != */zsh && -x "$prev" ]] || prev=/bin/bash
+  [[ "$(login_shell)" == "$prev" ]] && { ok "already $prev"; forget_setting login-shell; return 0; }
+  chsh -s "$prev" && { forget_setting login-shell; ok "login shell is ${prev##*/} again (log out and back in)"; } || { fail "chsh failed"; return 1; }
+}
+
+# --------------------------------------------------------- bashrc-tidy ---
+# Your old ~/.bashrc tidied (bash/bashrc_plan.py): what shell/common.sh, zsh/zshrc and the
+# layers now give both shells comes out, clashing leftovers go; unikit's own line (its bash
+# part) stays. The uninstall puts your lines back (bash/bashrc_restore.py).
+label_bashrc_tidy() { echo "~/.bashrc tidy-up"; }
+title_bashrc_tidy() { echo "Your old ~/.bashrc aliases and settings come from bluefeels in both shells; leftovers that clash go"; }
+detail_bashrc_tidy() { echo "~/.bashrc: copies of shell/common.sh (aliases, PATH, nvm) and old hooks taken out; unikit's line kept"; }
+bash_plan() {
+  BASH_PLAN=$(mktemp)
+  python3 -I "$fk/bash/bashrc_plan.py" "$rc" "$init_line" >"$BASH_PLAN"
+}
+state_bashrc_tidy() {
+  NOTE=""
+  [[ -f "$rc" ]] || { STATE=missing; NOTE="no ~/.bashrc"; return; }
+  bash_plan
+  if cmp -s "$rc" "$BASH_PLAN"; then STATE=installed
+  else STATE=missing; NOTE="leftovers to clean up in ~/.bashrc"; fi
+  rm -f "$BASH_PLAN"
+}
+install_bashrc_tidy() {
+  local b missing v
+  [[ -f "$rc" ]] || touch "$rc"
+  bash_plan
+  if cmp -s "$rc" "$BASH_PLAN"; then rm -f "$BASH_PLAN"; ok "already done"; return; fi
+  say "      ${D}$(diff "$rc" "$BASH_PLAN" | grep -c '^<') lines move out of ~/.bashrc (into bluefeels' shell/common.sh and the layers), $(diff "$rc" "$BASH_PLAN" | grep -c '^>') added${R}"
+  logf "--- ~/.bashrc diff ---"
+  diff -u "$rc" "$BASH_PLAN" --label "~/.bashrc" --label "~/.bashrc (new)" >>"$log_file"
+  (( details )) && diff -u "$rc" "$BASH_PLAN" --label "~/.bashrc" --label "~/.bashrc (new)" | sed 's/^/    /'
+  missing=""
+  for v in $(grep -oE '^export OKTA_AWSCLI_[A-Z_]+' "$rc" | sed 's/^export //'); do
+    cat "$repo"/layers/*/shell/init.sh 2>/dev/null | grep -q "^export $v=" || missing+="$v "
+  done
+  [[ -n "$missing" ]] && warn "not in a layer's shell/init.sh yet, so they'd be lost: $missing"
+  grep -qE '^[[:space:]]*alias okcli=' "$rc" && warn "an active 'alias okcli=' stays in ~/.bashrc; it would shadow okcli"
+  if ask "Update ~/.bashrc?"; then
+    b=$(backup "$rc")
+    cat "$BASH_PLAN" >"$rc"
+    if bash -n "$rc"; then ok "done (backup: ${b/#$HOME/\~})"
+    else cp -p "$b" "$rc"; fail "syntax error in the result, so the original was put back"; fi
+  else skip "--details shows the diff"; fi
+  rm -f "$BASH_PLAN"
+}
+# Undo: the lines taken out of your original ~/.bashrc go back where they were, and
+# anything you edited since is kept; unikit's line stays (its bash part).
+uninstall_bashrc_tidy() {
+  local b orig base merged n
+  orig=$(original_of "$rc")
+  merged=$(mktemp); base=$(mktemp)
+  if [[ -n "$orig" ]] && ! grep -qE "$init_re" "$orig" &&
+     python3 -I "$fk/bash/bashrc_plan.py" "$orig" "$init_line" | grep -vE "$init_re" >"$base" &&
+     python3 -I "$fk/bash/bashrc_restore.py" <(grep -vE "$init_re" "$rc") "$orig" "$base" >"$merged"; then
+    n=$(diff "$rc" "$merged" | grep -c '^>')
+    logf "--- ~/.bashrc restore diff ---"; diff -u "$rc" "$merged" --label "~/.bashrc" --label "~/.bashrc (restored)" >>"$log_file"
+    if (( n )) && ask "Put back the $n line(s) taken out of ~/.bashrc? (your edits since are kept)"; then
+      b=$(backup "$rc")
+      if grep -qE "$init_re" "$rc"; then { cat "$merged"; printf '\n%s\n' "$init_line"; } >"$rc"; else cat "$merged" >"$rc"; fi
+      if bash -n "$rc"; then ok "put back your $n line(s) (backup: ${b/#$HOME/\~})"
+      else cp -p "$b" "$rc"; fail "syntax error after putting them back, so ~/.bashrc is unchanged; your original: ${orig/#$HOME/\~}"; fi
+      rm -f "$merged" "$base"; return
+    fi
+  elif [[ -n "$orig" ]]; then
+    warn "couldn't work out what to put back; your pre-toolkit ~/.bashrc: ${orig/#$HOME/\~}"
+  fi
+  rm -f "$merged" "$base"
+  ok "nothing put back"
+}
 
 # ---------------------------------------------------------------- btop ---
 # btop with the toolkit's settings (no black panel, rounded boxes). Its colours are
