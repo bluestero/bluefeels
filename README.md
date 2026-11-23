@@ -48,6 +48,10 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 | `kitty` | the kitty terminal itself: the latest official build (checksum-checked) in `~/.local/kitty.app`; `kitty`/`kitten` in `~/.local/bin`, the app menu entry and Ctrl+Alt+T point at it. Ubuntu's apt kitty stays as the fallback (uninstall goes back to it). `./install.sh ls` shows when there's a newer one |
 | `kitty-config` | `~/.config/kitty/kitty.conf` → `bluefeels/kitty/kitty.conf` |
 | `kitty-nautilus` | `bluefeels/kitty/install-kitty-gnome.sh` (kitty as default terminal, Open in Terminal in Files; Ctrl+Alt+T focuses the open kitty window, or starts kitty, via `bluefeels/kitty/bin/kitty-focus`, and Ctrl+Shift+Alt+T opens a new window) |
+| `btop` | installs btop (apt) if missing, writes `~/.config/btop/btop.conf` from `bluefeels/btop/btop.conf` with your patch over it (fk configs), and has k-theme write btop's colours from your kitty theme (re-done on every theme change). Uninstall puts your own btop config back |
+| `yazi` | yazi 26.9.1 (terminal file manager) from GitHub in `~/.local/bin`, checked against a pinned sha256; also `ya`. The `y` command (`bluefeels/shell/y.sh`, loaded by its `shell/init.sh`) opens it and leaves your shell in the folder you quit in (`q`; `Q` quits without cd). Colours follow the kitty theme through the terminal palette. Uninstall removes the binaries; `~/.config/yazi` stays |
+| `yazi-keys` | Two keys for yazi: `>` picks a folder inside the current one with fzf (up to 6 levels, no hidden folders), and ctrl+backspace deletes a word in yazi's text fields. Written as one marked block (`# >>> work toolkit >>>`) in `~/.config/yazi/keymap.toml`, from `bluefeels/yazi/keymap.toml`: added to your file if you have one (the rest stays yours), the file is made if not; if yours already has `prepend_keymap = [ ... ]` lines it says so and leaves it alone. Uninstall removes only the block |
+| `starship` | `~/.config/starship.toml` → `bluefeels/starship/starship.toml`, and starship itself (latest from GitHub, sha256-checked) in `~/.local/bin` if it isn't installed |
 | `kitty-bg` | apt `imagemagick` (and fzf if there's none) for the `k-bg` picker, then a first pick (live preview; Esc = no background). Uninstall: background off, resized copies removed |
 | `kitty-theme` | kitty's theme collection (about 0.6 MB from GitHub), a current fzf if yours is older than 0.60, then an optional first pick with `k-theme`. Uninstall: back to kitty's colours (your Mine list stays) |
 | `kitty-accents` | `k-bg accents on`: a vivid colour from the background (always readable against it, never red) for the prompt's directory, `❯` and git branch, the toolkit's pickers and highlights, and kitty's cursor, selection, links, active tab and border. Terminal colours and red prod warnings stay put |
@@ -73,6 +77,9 @@ tools             what fk's picker and `fk help` show for these commands
 backgrounds/      the images k-bg offers (licences in backgrounds/SOURCES.md)
 themes/           team themes for k-theme (yours go in ~/.config/kitty/themes)
 kitty-icons/      the kitty icon installer and cleanup
+starship/         starship.toml (the prompt) and toml_patch.py (your patch laid over it)
+btop/             btop.conf (btop)
+yazi/             keymap.toml (yazi-keys)
 kitty/            kitty.conf (kitty-config), the "Open in Terminal" / Ctrl+Alt+T installer, bin/kitty-focus
 gnome/            one folder per GNOME extension: the preset look (settings.dconf), patches
                   (dash2dock/check-patch.sh tries the patch against the newest release: `fk dash2dock`)

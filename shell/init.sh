@@ -1,6 +1,29 @@
-# bluefeels's shell setup. The toolkit's shell/init.sh sources it (bash and zsh) before direnv,
-# starship and the tools load. $_work_root is the toolkit's folder.
+# bluefeels's shell setup. The toolkit's shell/init.sh sources it (bash and zsh), layers by
+# name (bluefeels before bluetools), then its own tools. $_work_root is the toolkit's folder.
 _fk="$(cd "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.." && pwd)"
+# Your starship patch (fk configs: edit my patch) laid over the preset: starship can't read
+# two files, so they're merged into one, made again when either changes. First: k-bg
+# (below) colours this file when it's there.
+_ss_out="$HOME/.local/state/work-toolkit/starship.toml"
+_ss_patch="$HOME/.config/work-toolkit/patches/starship.toml"
+if [ -f "$_ss_patch" ] && [ -f "$HOME/.config/starship.toml" ] && command -v python3 >/dev/null 2>&1; then
+  if [ ! -f "$_ss_out" ] || [ "$_ss_patch" -nt "$_ss_out" ] || [ "$HOME/.config/starship.toml" -nt "$_ss_out" ]; then
+    python3 -I "$_fk/starship/toml_patch.py" "$HOME/.config/starship.toml" "$_ss_patch" "$_ss_out" 2>/dev/null ||
+      echo "starship: your patch has an error (fk configs shows it); the prompt keeps the last one that worked" >&2
+  fi
+  [ -f "$_ss_out" ] && export STARSHIP_CONFIG="$_ss_out"
+else
+  rm -f "$_ss_out"
+fi
+unset _ss_out _ss_patch
+# btop's own settings file (the preset with your patch): made again after either changes,
+# unless btop has changed it since (fk configs then offers to keep that as your patch).
+_bt="$HOME/.config/btop/btop.conf"
+if [ -f "$HOME/.local/state/work-toolkit/originals/configs/btop.made" ] && [ -f "$_bt" ] && [ ! -L "$_bt" ] &&
+   { [ "$_fk/btop/btop.conf" -nt "$_bt" ] || [ "$HOME/.config/work-toolkit/patches/btop.conf" -nt "$_bt" ]; }; then
+  bash "$_work_root/lib/configs.sh" __refresh btop >/dev/null 2>&1
+fi
+unset _bt
 # k-bg keeps a copy of starship.toml with the background's accent colours in it;
 # starship rereads it at every prompt, so a new background shows straight away.
 _kbg_star="${XDG_STATE_HOME:-$HOME/.local/state}/k-bg/starship.toml"
@@ -13,8 +36,12 @@ if [ -f "$_kbg_star" ]; then
   export STARSHIP_CONFIG="$_kbg_star"
 fi
 unset _kbg_star _kbg_src
-for _f in k-icon k-bg k-theme; do   # tab completion
+for _f in k-icon k-bg k-theme y; do   # tab completion; y opens yazi
   [ -r "$_fk/shell/$_f.sh" ] && . "$_fk/shell/$_f.sh"
 done
+# The prompt. Layers that load after this one add their prompt hooks to starship's own list.
+if command -v starship >/dev/null 2>&1; then
+  if [ -n "${ZSH_VERSION:-}" ]; then eval "$(starship init zsh)"; else eval "$(starship init bash)"; fi
+fi
 unset -f k-config 2>/dev/null   # older toolkit versions defined it as a function
 unset _fk _f

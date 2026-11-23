@@ -10,6 +10,7 @@ fk="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPONENTS+=(kitty kitty-config kitty-nautilus)
 group_kitty() { echo Kitty; }; group_kitty_config() { echo Kitty; }; group_kitty_nautilus() { echo Kitty; }
 requires_kitty() { echo linux; }; requires_kitty_nautilus() { echo gnome apt; }
+NEEDS+=([kitty-config]=kitty [kitty-nautilus]=kitty)
 GROUP_ABOUT[Kitty]="The kitty terminal, its settings, and Files' \"Open in Terminal\"."
 # The official kitty build in ~/.local/kitty.app (no sudo). Ubuntu's apt kitty
 # stays installed as a fallback; uninstalling this goes back to it.
@@ -162,6 +163,202 @@ state_kitty_nautilus() { NOTE=""
   if (( n == 3 )); then STATE=installed; elif (( n )); then STATE=partial; else STATE=missing; fi; }
 install_kitty_nautilus() { ask "Run kitty/install-kitty-gnome.sh (may need sudo)?" && bash "$fk/kitty/install-kitty-gnome.sh" || skip; }
 uninstall_kitty_nautilus() { bash "$fk/kitty/uninstall-kitty-gnome.sh"; }
+
+# ------------------------------------------------------ Shell & apps ---
+# The prompt (starship), btop and yazi (came from unikit, tasks/14). Their presets are in
+# fk configs (config_<id>).
+COMPONENTS+=(starship btop yazi yazi-keys)
+group_starship() { echo Shell; }; group_btop() { echo "Terminal apps"; }
+group_yazi() { echo "Terminal apps"; }; group_yazi_keys() { echo "Terminal apps"; }
+requires_btop() { echo apt; }; requires_yazi() { echo linux; }; requires_yazi_keys() { echo linux; }
+NEEDS+=([yazi-keys]=yazi)
+GROUP_ABOUT[Shell]="Your shell: the starship prompt."
+GROUP_ABOUT["Terminal apps"]="btop (system monitor) and yazi (file manager; y opens it), coloured like kitty."
+# ------------------------------------------------------------ starship ---
+ss="$HOME/.config/starship.toml"; ss_src="$fk/starship/starship.toml"
+label_starship() { echo "Starship prompt"; }
+config_starship() { echo "file|starship|starship|$ss|$ss_src|link|starship.toml|the prompt"; }
+# your patch merged over the preset (shell/init.sh does the same at start); prints an error
+ss_merged="$HOME/.local/state/work-toolkit/starship.toml"; ss_patch="$HOME/.config/work-toolkit/patches/starship.toml"
+ss_merge() {
+  if [[ -f $ss_patch && -e $ss ]]; then python3 -I "$fk/starship/toml_patch.py" "$ss" "$ss_patch" "$ss_merged" 2>&1 | sed "s|^$HOME|~|; s|^|✗ starship: your patch has an error: |"
+  else rm -f "$ss_merged"; fi
+}
+ss_sync() { "$fk/bin/k-bg" __sync_prompt >/dev/null 2>&1; return 0; }   # its accent copy is what starship reads
+config_after_starship() { ss_merge >/dev/null; ss_sync; }   # (an error shows when you edit the patch)
+config_saved_starship() {
+  local err; err=$(ss_merge); ss_sync
+  if [[ -n $err ]]; then head -1 <<<"$err"
+  else echo "✓ starship: your patch saved (new terminals pick it up; with k-bg, this one too)"; fi
+}
+title_starship() { echo "Prompt showing git branch, k8s cluster, AWS profile and PROD warnings"; }
+detail_starship() { echo "prompt config (git + GitHub account when it isn't your default, Python virtualenv, k8s, AWS profile + expiry, PROD markers); starship itself, latest from GitHub (sha256-checked), in ~/.local/bin if it isn't installed"; }
+state_starship() { NOTE=""; if linked "$ss" "$ss_src"; then STATE=installed; else STATE=missing; fi
+  type -P starship >/dev/null || { NOTE="starship itself isn't installed"; [[ $STATE == installed ]] && STATE=partial; }; }
+install_starship() {
+  get_tool starship "the prompt itself" "about 5 MB" fetch_starship
+  linked "$ss" "$ss_src" && { ok "already linked"; return; }
+  ask "Switch to bluefeels' starship prompt?" && link_file "$ss" "$ss_src" || skip; }
+fetch_starship() { local a; case "$(dl_arch)" in amd64) a=x86_64 ;; arm64) a=aarch64 ;; esac
+  gh_tool starship/starship "starship-$a-unknown-linux-musl.tar.gz" starship; }
+uninstall_starship() { unlink_file "$ss" "$ss_src"; drop_tool starship; }
+touches_starship() { echo "$ss"; }
+
+# ---------------------------------------------------------------- btop ---
+# btop with the toolkit's settings (no black panel, rounded boxes). Its colours are
+# generated from the kitty theme in use (k-theme writes ~/.config/btop/themes/kitty.theme).
+bt="$HOME/.config/btop/btop.conf"; bt_src="$fk/btop/btop.conf"
+# btop can't include a second file and writes its own config when you change a setting in
+# its menu, so it gets a file of its own: the preset with your patch laid over it
+# (fk configs). bt_made keeps the checksum of what the toolkit last wrote.
+bt_patch="$HOME/.config/work-toolkit/patches/btop.conf"; bt_made="$log_dir/originals/configs/btop.made"
+bt_merge() {   # the preset, your patch's "key = value" lines in place of its own (new ones at the end)
+  awk 'function k(l) { sub(/[ \t]*=.*/, "", l); return l }
+    FILENAME == ARGV[1] { if ($0 ~ /^[A-Za-z_]+[ \t]*=/) { if (!(k($0) in p)) o[++n] = k($0); p[k($0)] = $0 }; next }
+    $0 ~ /^[A-Za-z_]+[ \t]*=/ && (k($0) in p) { print p[k($0)]; done[k($0)] = 1; next }
+    { print }
+    END { for (i = 1; i <= n; i++) if (!(o[i] in done)) print p[o[i]] }' \
+    "$([[ -f $bt_patch ]] && echo "$bt_patch" || echo /dev/null)" "${1:-$bt_src}"
+}
+bt_kv() { grep -E '^[A-Za-z_]+[[:space:]]*=' "$@" | sed -E 's/[[:space:]]*=[[:space:]]*/ = /' | sort; }   # the settings alone
+bt_ours() { [[ -f $bt && ! -L $bt && "$(bt_kv "$bt")" == "$(bt_merge | bt_kv)" ]]; }   # the preset (and patch) as written
+bt_build() { mkdir -p "${bt%/*}" "${bt_made%/*}"; rm -f "$bt"; bt_merge >"$bt" && sha256sum "$bt" | cut -d' ' -f1 >"$bt_made"; }
+kth="$fk/bin/k-theme"
+label_btop() { echo "btop"; }
+config_btop() { echo "file|btop|btop|$bt|$bt_src|merge|btop.conf|system monitor"; }
+# the merge kind's own (lib/configs.sh): write the file, is it ours, our checksum, your changes
+merge_build_btop() { bt_build; }
+merge_ours_btop() { bt_ours; }
+merge_made_btop() { echo "$bt_made"; }
+merge_keep_btop() { comm -23 <(bt_kv "$bt") <(bt_merge | bt_kv); }
+config_saved_btop() { bt_build; echo "✓ btop: your patch saved (btop reads it when it starts)"; }
+title_btop() { echo "btop system monitor, set up to follow your kitty colour theme"; }
+detail_btop() { echo "btop (apt) if missing; ~/.config/btop/btop.conf: bluefeels/btop/btop.conf with your patch over it; kitty.theme written by k-theme"; }
+state_btop() { NOTE=""
+  local n=0
+  type -P btop >/dev/null && (( n++ ))
+  { linked "$bt" "$bt_src" || bt_ours; } && (( n++ ))
+  if (( n == 2 )); then STATE=installed; elif (( n )); then STATE=partial; else STATE=missing; fi; }
+install_btop() {
+  if ! type -P btop >/dev/null; then
+    if ask "Install btop? (apt, needs sudo)"; then
+      apt_install btop && ok "installed" || { fail "apt failed (see $log_file)"; return 1; }
+    else skip; return 0; fi
+  fi
+  if bt_ours; then ok "btop settings already set"
+  elif linked "$bt" "$bt_src"; then   # older installs: a link, so btop's menu wrote into the repo
+    if ask "Give btop a settings file of its own? (now its menu writes into the toolkit's copy)"; then
+      dry || bt_build && ok "done ${D}(your own changes: fk configs → btop → Edit my patch)${R}"
+    else skip; fi
+  else
+    ask "Use the toolkit's btop settings? (your own are kept as a backup)" || { skip; return 0; }
+    dry || { [[ -f $bt && ! -L $bt ]] && backup "$bt" >/dev/null; bt_build; } && ok "set ${D}(your own changes: fk configs → btop → Edit my patch)${R}"
+  fi
+  dry || "$kth" btop >>"$log_file" 2>&1 && ok "colours follow k-theme ${D}(theme: $("$kth" current 2>/dev/null))${R}"
+}
+touches_btop() { echo "$bt"; }
+uninstall_btop() {
+  rm -f "$HOME/.config/btop/themes/kitty.theme"
+  unlink_file "$bt" "$bt_src"
+  if bt_ours; then   # the toolkit's file (one btop has changed since is yours, and stays)
+    rm -f "$bt" "$bt_made"; local b; b=$(latest_backup "$bt")
+    if [[ -n $b ]]; then mv "$b" "$bt"; ok "removed, put back ${b/#$HOME/\~}"; else ok "removed"; fi
+  fi
+  if type -P btop >/dev/null && ask "Also remove the btop package? (apt, needs sudo)" n; then
+    as_root apt-get remove -y btop >>"$log_file" 2>&1 && ok "package removed" || fail "apt failed (see $log_file)"
+  fi
+}
+
+# ---------------------------------------------------------------- yazi ---
+# Terminal file manager. The release below goes in ~/.local/bin (no sudo). The
+# release has no checksums file, so the sha256 of each build is pinned here
+# (GitHub's own digest of the asset); bump both together.
+YAZI_VERSION=26.9.1
+YAZI_SHA_x86_64=9b9c39decccf8cb0ff53a7d637d38f8a79d93bbd0099f4ea9c619ef6bb392f5d
+YAZI_SHA_aarch64=dd569daecaae914185f295634109295ccd25c1b42b02eb89a74f651970024f2e
+fetch_yazi() {
+  local arch f url tmp sum want
+  case "$(uname -m)" in
+    x86_64|amd64)  arch=x86_64;  want=$YAZI_SHA_x86_64 ;;
+    aarch64|arm64) arch=aarch64; want=$YAZI_SHA_aarch64 ;;
+    *) warn "no yazi download for $(uname -m)"; return 1 ;;
+  esac
+  type -P unzip >/dev/null || { warn "unzip is needed to unpack yazi"; return 1; }
+  f="yazi-${arch}-unknown-linux-musl.zip"
+  url="https://github.com/sxyazi/yazi/releases/download/v$YAZI_VERSION/$f"
+  tmp=$(mktemp -d)
+  curl -fsSL --retry 2 -o "$tmp/$f" "$url" 2>>"$log_file" || { warn "couldn't download yazi (offline?)"; rm -rf "$tmp"; return 1; }
+  sum=$(sha256sum "$tmp/$f" | cut -d' ' -f1)
+  [[ "$sum" == "$want" ]] || { warn "yazi download didn't match its checksum, so it wasn't installed"; rm -rf "$tmp"; return 1; }
+  unzip -qo -j "$tmp/$f" '*/yazi' '*/ya' -d "$tmp/out" 2>>"$log_file" || { warn "no yazi in the download"; rm -rf "$tmp"; return 1; }
+  mkdir -p "$HOME/.local/bin"
+  install -m 755 "$tmp/out/yazi" "$HOME/.local/bin/yazi"
+  install -m 755 "$tmp/out/ya" "$HOME/.local/bin/ya"
+  rm -rf "$tmp"
+  logf "yazi $YAZI_VERSION installed to ~/.local/bin"
+}
+
+
+# Terminal file manager (yazi) plus the `y` command (shell/y.sh) that leaves
+# your shell in the folder you quit in. Colours come from the terminal's own
+# palette, so it already follows the kitty theme.
+yazi_mine="$HOME/.local/bin/yazi"
+yazi_ver() { "${1:-yazi}" --version 2>/dev/null | awk '/Version:/ { print $2; exit }'; }
+label_yazi() { echo "yazi"; }
+title_yazi() { echo "yazi file manager; y opens it and cd's to where you quit"; }
+detail_yazi() { echo "yazi $YAZI_VERSION from GitHub (sha256-checked) in ~/.local/bin; the y command comes with the toolkit's shell setup"; }
+state_yazi() {
+  local v; v=$(yazi_ver); NOTE=""
+  if [[ -z "$v" ]]; then STATE=missing
+  elif [[ -x "$yazi_mine" ]] && ver_lt "$(yazi_ver "$yazi_mine")" "$YAZI_VERSION"; then STATE=partial; NOTE="update: $(yazi_ver "$yazi_mine") → $YAZI_VERSION"
+  else STATE=installed; NOTE="$v"; fi
+}
+install_yazi() {
+  local v; v=$(yazi_ver "$yazi_mine")
+  if [[ -n "$v" ]] && ! ver_lt "$v" "$YAZI_VERSION"; then ok "yazi $v"; return; fi
+  if [[ -z "$v" ]] && type -P yazi >/dev/null; then ok "yazi $(yazi_ver) is already installed elsewhere"; return; fi
+  if ask "Download yazi $YAZI_VERSION into ~/.local/bin? (about 10 MB, no sudo)"; then
+    dry && return
+    fetch_yazi && ok "yazi $(yazi_ver "$yazi_mine") ${D}(type y; q quits, Q quits without cd)${R}" || fail "not installed (see the log)"
+  else skip; fi
+}
+uninstall_yazi() {
+  [[ -e "$yazi_mine" ]] || { ok "not installed"; return 0; }
+  rm -f "$yazi_mine" "$HOME/.local/bin/ya"
+  ok "removed ${D}(your ~/.config/yazi stays)${R}"
+}
+
+# Optional: two keys for yazi, as a marked block in ~/.config/yazi/keymap.toml (added to
+# the file if there is one, the file made if not; uninstall takes out only the block).
+yk_src="$fk/yazi/keymap.toml"
+yk_file="$HOME/.config/yazi/keymap.toml"
+label_yazi_keys() { echo "yazi keys"; }
+config_yazi_keys() { echo "file|yazi keys|yazi|$yk_file|$yk_src|block||> and ctrl+backspace in yazi"; }
+title_yazi_keys() { echo "yazi: > picks a folder inside this one; ctrl+backspace deletes a word"; }
+detail_yazi_keys() { echo "a marked block from bluefeels/yazi/keymap.toml in ~/.config/yazi/keymap.toml (the file is made if it's missing); needs fzf"; }
+# yazi's keymap can't have both prepend_keymap = [...] and [[...prepend_keymap]] for one layer:
+# true when the file already has the first form, outside our block
+yk_clash() { [[ -f "$yk_file" ]] && awk -v s="$BLOCK_START" -v e="$BLOCK_END" '$0==s{f=1;next} $0==e{f=0;next} !f' "$yk_file" | grep -qE '^[[:space:]]*prepend_keymap[[:space:]]*='; }
+state_yazi_keys() { NOTE=""
+  type -P yazi >/dev/null || { STATE=n/a; NOTE="yazi isn't installed"; return; }
+  if has_block "$yk_file" "$(<"$yk_src")"; then STATE=installed
+  elif grep -qxF "$BLOCK_START" "$yk_file" 2>/dev/null; then STATE=partial; NOTE="out of date"
+  else STATE=missing; fi; }
+install_yazi_keys() {
+  has_block "$yk_file" "$(<"$yk_src")" && { ok "already there"; return; }
+  if yk_clash; then
+    warn "${yk_file/#$HOME/\~} already has prepend_keymap = [ ... ] lines, which can't sit next to the toolkit's keys."
+    info "    Add the entries from $yk_src to your own list instead."; skip; return
+  fi
+  if ask "Add the keys to ${yk_file/#$HOME/\~}? (> picks a folder inside this one; ctrl+backspace deletes a word; the rest of the file stays yours)"; then
+    dry && return
+    mkdir -p "$(dirname "$yk_file")" && set_block "$yk_file" "$(<"$yk_src")" && ok "done ${D}(open yazi and try >)${R}"
+  else skip; fi
+}
+uninstall_yazi_keys() {
+  grep -qxF "$BLOCK_START" "$yk_file" 2>/dev/null || { ok "not there"; return 0; }
+  drop_block "$yk_file"; ok "removed from ${yk_file/#$HOME/\~}"
+}
 
 COMPONENTS+=(kitty-bg kitty-theme kitty-accents kitty-icons kitty-centered dash2dock dash-to-panel no-animations notification-key vitals vitals-icons blur-my-shell rounded-corners)
 # Its parts are fk's (the file "kit"): fk install / fk uninstall, never in
