@@ -510,6 +510,259 @@ uninstall_yazi_keys() {
   drop_block "$yk_file"; ok "removed from ${yk_file/#$HOME/\~}"
 }
 
+# --------------------------------------------------------------- Desktop ---
+# GNOME extensions and shortcuts (came from unikit, tasks/14): Window Calls, Alt+Tab after
+# Show Desktop, Docker's tray dots hidden, Super+1..9 app keys, the rofi launcher.
+COMPONENTS+=(bluefeels-window-calls alt-tab-desktop hide-docker-tray app-keys rofi)
+group_bluefeels_window_calls() { echo Desktop; }; group_alt_tab_desktop() { echo Desktop; }
+group_hide_docker_tray() { echo Desktop; }; group_app_keys() { echo Desktop; }; group_rofi() { echo Desktop; }
+requires_bluefeels_window_calls() { echo gnome; }; requires_alt_tab_desktop() { echo gnome; }
+requires_hide_docker_tray() { echo gnome; }; requires_app_keys() { echo gnome; }; requires_rofi() { echo gnome apt; }
+GROUP_ABOUT[Desktop]="GNOME extensions and shortcuts: windows, Super+number app keys, the rofi launcher (Alt+Space, Super+S, Super+X)."
+# The launcher entry (gives rofi's window an icon in a dock or panel); shared by rofi and the docks
+launcher_icon_dir="$HOME/.local/share/icons/hicolor/512x512/apps"; launcher_icon="$launcher_icon_dir/k-launch.png"
+# a layer can ask to keep it by defining wants_launcher_entry
+launcher_entry_wanted() { kb_has rofi-launcher || { declare -F wants_launcher_entry >/dev/null && wants_launcher_entry; }; }
+remove_launcher_entry() {
+  launcher_entry_wanted && return 0
+  rm -f "$HOME/.local/share/applications/k-launch.desktop" "$HOME/.local/share/applications/rofi.desktop" "$launcher_icon" "$HOME/.local/share/icons/hicolor/scalable/apps/k-launch.svg"
+}
+launcher_entry_set() { [[ -f "$launcher_icon" ]] && grep -qxF "Exec=$fk/rofi/bin/k-launch apps" "$HOME/.local/share/applications/k-launch.desktop" 2>/dev/null &&
+  grep -qxF "Icon=k-launch" "$HOME/.local/share/applications/k-launch.desktop" &&
+  [[ -f "$HOME/.local/share/applications/rofi.desktop" ]]; }
+install_launcher_entry() {
+  mkdir -p "$launcher_icon_dir" "$HOME/.local/share/applications"
+  convert "$fk/rofi/rofi-icon.png" -resize 512x512 "$launcher_icon" 2>>"$log_file" ||
+    install -m 644 "$fk/rofi/rofi-icon.png" "$launcher_icon"
+  printf '%s\n' "[Desktop Entry]" "Type=Application" "Name=Launcher" "Comment=App launcher (Alt+Space)" \
+    "Exec=$fk/rofi/bin/k-launch apps" "Icon=k-launch" "Terminal=false" "Categories=Utility;" "StartupWMClass=Rofi" \
+    >"$HOME/.local/share/applications/k-launch.desktop"
+  # GNOME's panel matches rofi's window to the system rofi.desktop (a gear icon); this copy wins over it
+  sed "s|^Icon=.*|Icon=k-launch|" /usr/share/applications/rofi.desktop >"$HOME/.local/share/applications/rofi.desktop"
+}
+
+
+# --------------------------------------------- bluefeels-window-calls ---
+# GNOME extension that lets scripts list, focus and close windows over D-Bus.
+# app-keys and kitty-focus use it (Ctrl+Alt+T); another layer may bring a part for the same
+# extension (bluetools, for ws): the same touches_, and shared_keep in the uninstall.
+bfwc_uuid="window-calls@domandoman.xyz"
+bfwc_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$bfwc_uuid'"; }
+bfwc_present() { [[ -d "$HOME/.local/share/gnome-shell/extensions/$bfwc_uuid" ]]; }
+bfwc_live() { gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows \
+  --method org.gnome.Shell.Extensions.Windows.List >/dev/null 2>&1; }
+label_bluefeels_window_calls() { echo "Window Calls"; }
+title_bluefeels_window_calls() { echo "Let scripts list, focus and close windows (GNOME extension; log out once)"; }
+touches_bluefeels_window_calls() { echo "$HOME/.local/share/gnome-shell/extensions/$bfwc_uuid"; }
+detail_bluefeels_window_calls() { echo "GNOME extension $bfwc_uuid from extensions.gnome.org into ~/.local/share/gnome-shell/extensions"; }
+state_bluefeels_window_calls() {
+  NOTE=""
+  type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
+  if bfwc_present && bfwc_enabled; then
+    if bfwc_live; then STATE=installed; else STATE=partial; NOTE="log out and back in to load it"; fi
+  elif bfwc_present; then STATE=partial; NOTE="installed, not enabled"
+  else STATE=missing; fi
+}
+install_bluefeels_window_calls() {
+  local ver url tmp
+  if bfwc_present && bfwc_enabled; then
+    bfwc_live && ok "already active" || ok "installed; log out and back in once to load it"
+    return
+  fi
+  if ! bfwc_present; then
+    ask "Download Window Calls from extensions.gnome.org and install it?" || { skip; return; }
+    ver=$(gnome-shell --version | grep -oE '[0-9]+' | head -1)
+    url=$(curl -fsS "https://extensions.gnome.org/extension-info/?uuid=$bfwc_uuid&shell_version=$ver" |
+      python3 -Ic 'import json,sys; print(json.load(sys.stdin)["download_url"])' 2>/dev/null)
+    [[ -n "$url" ]] || { fail "no Window Calls release for GNOME $ver"; return; }
+    tmp=$(mktemp --suffix=.zip)
+    if curl -fsSL -o "$tmp" "https://extensions.gnome.org$url" && gnome-extensions install --force "$tmp" >>"$log_file" 2>&1; then
+      ok "installed"; logf "  from https://extensions.gnome.org$url"
+    else rm -f "$tmp"; fail "download or install failed (see the log)"; return; fi
+    rm -f "$tmp"
+  fi
+  # `gnome-extensions enable` can't see it until GNOME reloads, so add it to the list directly
+  # (and off the disabled list, where an uninstall leaves it).
+  dry || ext_list add "$bfwc_uuid"
+  ok "enabled"
+  warn "log out and back in once (Wayland loads new extensions only at login)"
+}
+uninstall_bluefeels_window_calls() {
+  bfwc_present || { ok "not installed"; return; }
+  shared_keep bluefeels-window-calls && return
+  gnome-extensions disable "$bfwc_uuid" >/dev/null 2>&1
+  python3 -I - "$bfwc_uuid" <<'PY'
+import ast, subprocess, sys
+cur = subprocess.run(["gsettings", "get", "org.gnome.shell", "enabled-extensions"], capture_output=True, text=True).stdout.strip()
+lst = ast.literal_eval(cur.removeprefix("@as ")) if cur else []
+if sys.argv[1] in lst:
+    subprocess.run(["gsettings", "set", "org.gnome.shell", "enabled-extensions", str([x for x in lst if x != sys.argv[1]])], check=True)
+PY
+  if gnome-extensions uninstall "$bfwc_uuid" >/dev/null 2>&1 || rm -rf "$HOME/.local/share/gnome-shell/extensions/$bfwc_uuid"; then
+    ok "removed"
+  fi
+}
+
+# ------------------------------------------------------ alt-tab-desktop ---
+# After Super+D (show desktop), Alt+Tab goes back to the window you minimized,
+# not the one before it. Small GNOME extension kept in bluefeels/gnome/ and linked in.
+atd_uuid="alt-tab-desktop@work-toolkit"
+atd_dir="$HOME/.local/share/gnome-shell/extensions/$atd_uuid"; atd_src="$fk/gnome/$atd_uuid"
+atd_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$atd_uuid'"; }
+label_alt_tab_desktop() { echo "Alt+Tab after Show Desktop"; }
+title_alt_tab_desktop() { echo "After Super+D, Alt+Tab returns to the window you minimized (GNOME extension; log out once)"; }
+detail_alt_tab_desktop() { echo "~/.local/share/gnome-shell/extensions/$atd_uuid -> bluefeels/gnome/$atd_uuid, added to enabled extensions"; }
+state_alt_tab_desktop() { NOTE=""
+  type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
+  if linked "$atd_dir" "$atd_src" && atd_enabled; then STATE=installed
+  elif linked "$atd_dir" "$atd_src" || atd_enabled; then STATE=partial
+  else STATE=missing; fi; }
+install_alt_tab_desktop() {
+  if linked "$atd_dir" "$atd_src" && atd_enabled; then ok "already installed"; return; fi
+  ask "Make Alt+Tab return to the window you minimized with Super+D?" || { skip; return; }
+  mkdir -p "$(dirname "$atd_dir")"
+  linked "$atd_dir" "$atd_src" || link_file "$atd_dir" "$atd_src" || return 1
+  ext_list add "$atd_uuid" && ok "enabled"
+  warn "log out and back in once (Wayland loads new extensions only at login)"
+}
+uninstall_alt_tab_desktop() {
+  ext_list del "$atd_uuid"
+  unlink_file "$atd_dir" "$atd_src"
+}
+
+# ------------------------------------------------------ hide-docker-tray ---
+# Docker Desktop's tray item has no icon and an empty menu: three dots that do nothing on click.
+# Small GNOME extension (bluefeels/gnome/hide-docker-tray@work-toolkit), linked in, that keeps it hidden.
+hdt_uuid="hide-docker-tray@work-toolkit"
+hdt_dir="$HOME/.local/share/gnome-shell/extensions/$hdt_uuid"; hdt_src="$fk/gnome/$hdt_uuid"
+hdt_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$hdt_uuid'"; }
+label_hide_docker_tray() { echo "Hide Docker's tray dots"; }
+title_hide_docker_tray() { echo "hides Docker Desktop's dead three-dots tray icon (GNOME extension; log out once)"; }
+detail_hide_docker_tray() { echo "~/.local/share/gnome-shell/extensions/$hdt_uuid -> bluefeels/gnome/$hdt_uuid, added to enabled extensions"; }
+state_hide_docker_tray() { NOTE=""
+  type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
+  if linked "$hdt_dir" "$hdt_src" && hdt_enabled; then STATE=installed
+  elif linked "$hdt_dir" "$hdt_src" || hdt_enabled; then STATE=partial
+  else STATE=missing; fi; }
+install_hide_docker_tray() {
+  if linked "$hdt_dir" "$hdt_src" && hdt_enabled; then ok "already installed"; return; fi
+  ask "Hide Docker Desktop's dead three-dots tray icon?" || { skip; return; }
+  mkdir -p "$(dirname "$hdt_dir")"
+  linked "$hdt_dir" "$hdt_src" || link_file "$hdt_dir" "$hdt_src" || return 1
+  ext_list add "$hdt_uuid" && ok "enabled"
+  warn "log out and back in once (Wayland loads new extensions only at login)"
+}
+uninstall_hide_docker_tray() {
+  ext_list del "$hdt_uuid"
+  unlink_file "$hdt_dir" "$hdt_src"
+}
+
+# ---------------------------------------------------------------- rofi ---
+# Rofi as the app launcher: Alt+Space apps (Tab for ssh, windows, run), Alt+Shift+Space ssh.
+# Rofi 1.7 is an X11 program; -normal-window (set by bluefeels/rofi/bin/k-launch) lets it take the keyboard on GNOME's Wayland.
+rofi_conf="$HOME/.config/rofi/config.rasi"; rofi_src="$fk/rofi/config.rasi"
+label_rofi() { echo "Rofi launcher"; }
+config_rofi() { echo "file|rofi|rofi|$rofi_conf|$rofi_src|link|rofi.rasi|launcher style"; }
+title_rofi() { echo "Alt+Space opens an app launcher (Alt+Shift+Space ssh, Super+X power menu, Super+S speaker/mic/wifi/bluetooth), styled like kitty"; }
+detail_rofi() { echo "rofi (apt) if missing; ~/.config/rofi/config.rasi -> bluefeels/rofi/config.rasi; four GNOME shortcuts (Alt+Space, Alt+Shift+Space, Super+X, Super+S); launcher icon (bluefeels/rofi/rofi-icon.png) in the app list and dock"; }
+# rofi's config @imports files (colours, your patch); a missing one makes rofi open with an error box
+doctor_rofi() {
+  local imp miss=""
+  [[ -r ~/.config/rofi/config.rasi ]] || return 0
+  while IFS= read -r imp; do
+    imp=${imp/#\~/$HOME}; [[ $imp == /* ]] || imp=$HOME/.config/rofi/$imp
+    [[ -e $imp ]] || miss+="${imp/#$HOME/\~} "
+  done < <(sed -n 's/^[[:space:]]*@import[[:space:]]*"\(.*\)".*/\1/p' ~/.config/rofi/config.rasi)
+  if [[ -z $miss ]]; then echo "✓ config files all there"
+  else echo "! config needs ${miss% }, which is missing — $(kit_of rofi) install rofi"; fi
+}
+state_rofi() { NOTE=""
+  type -P gsettings >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
+  local n=0
+  type -P rofi >/dev/null && (( n++ ))
+  linked "$rofi_conf" "$rofi_src" && (( n++ ))
+  rofi_keys_on && (( n++ ))
+  launcher_entry_set && (( n++ ))
+  [[ -e $HOME/.config/work-toolkit/patches/rofi.rasi ]] && (( n++ ))   # config.rasi @imports it
+  if (( n == 5 )); then STATE=installed; elif (( n )); then STATE=partial; else STATE=missing; fi; }
+k_launch="$fk/rofi/bin/k-launch"
+rofi_keys_on() { kb_runs rofi-launcher "$k_launch apps" && kb_runs rofi-ssh "$k_launch ssh" &&
+  kb_runs rofi-power "$k_launch power" && kb_runs rofi-devices "$k_launch settings"; }
+install_rofi() {
+  if ! type -P rofi >/dev/null; then
+    if ask "Install rofi? (apt, needs sudo)"; then
+      apt_install rofi && ok "installed" || { fail "apt failed (see $log_file)"; return 1; }
+    else skip; return 0; fi
+  fi
+  if linked "$rofi_conf" "$rofi_src"; then ok "rofi style already linked"
+  else ask "Use bluefeels' rofi style? (your own is kept as a backup)" && link_file "$rofi_conf" "$rofi_src" || { skip; return 0; }; fi
+  # config.rasi @imports your patch and rofi errors when it is missing, so it must exist
+  local rp="$HOME/.config/work-toolkit/patches/rofi.rasi"
+  [[ -e $rp ]] || dry || { mkdir -p "${rp%/*}" && printf "// Your patch for rofi: read after the toolkit's preset, so what you set here wins.\n" >"$rp"; }
+  dry || "$fk/bin/k-rofi" >>"$log_file" 2>&1 && ok "colours follow k-theme and k-bg"
+  if launcher_entry_set; then ok "launcher icon already installed"
+  else dry || install_launcher_entry && ok "launcher icon installed (log out and back in if the dock still shows none)"; fi
+  if rofi_keys_on; then ok "shortcuts already set"
+  elif ask "Set Alt+Space (apps), Alt+Shift+Space (ssh), Super+X (power menu) and Super+S (speaker, mic, wifi, bluetooth)?"; then
+    kb_set rofi-launcher "Rofi launcher" "$k_launch apps" "<Alt>space"
+    kb_set rofi-ssh "Rofi ssh" "$k_launch ssh" "<Alt><Shift>space"
+    kb_set rofi-power "Rofi power" "$k_launch power" "<Super>x"
+    kb_set rofi-devices "Rofi speaker, mic, wifi, bluetooth" "$k_launch settings" "<Super>s"
+    ok "Alt+Space = apps, Alt+Shift+Space = ssh, Super+X = power menu, Super+S = speaker/mic/wifi/bluetooth"
+  else skip; fi
+}
+touches_rofi() { echo "$rofi_conf"; }
+uninstall_rofi() {
+  kb_has rofi-launcher && kb_del rofi-launcher
+  kb_has rofi-ssh && kb_del rofi-ssh
+  kb_has rofi-power && kb_del rofi-power
+  kb_has rofi-devices && kb_del rofi-devices
+  unlink_file "$rofi_conf" "$rofi_src"
+  rm -f "${rofi_conf%/*}/colors.rasi"
+  remove_launcher_entry
+  if type -P rofi >/dev/null && ask "Also remove the rofi package? (apt, needs sudo)" n; then
+    as_root apt-get remove -y rofi >>"$log_file" 2>&1 && ok "package removed" || fail "apt failed (see $log_file)"
+  fi
+}
+
+# ------------------------------------------------------------ app-keys ---
+# Super+1..9 = the Nth pinned app in the dock: launch it, bring it to the front, or (when it
+# is already in front) minimize it. gnome/app-keys/k-appkey does the work, one short process per key press;
+# it uses Window Calls to find and minimize windows. GNOME's own Super+1..9 is switched off
+# while this is on (the two would clash) and comes back with the uninstall.
+ak_n=(1 2 3 4 5 6 7 8 9)
+ak_cmd="$fk/gnome/app-keys/k-appkey"
+ak_keys_on() { local i; for i in "${ak_n[@]}"; do kb_runs "app-key-$i" "$ak_cmd $i" || return 1; done; }
+ak_native_off() { [[ "$(gsettings get org.gnome.shell.keybindings switch-to-application-1)" == "@as []" ]]; }
+label_app_keys() { echo "Super+number app keys"; }
+title_app_keys() { echo "Super+1..9 launches, raises or minimizes the Nth dock app (needs Window Calls; replaces GNOME's own)"; }
+detail_app_keys() { echo "nine GNOME shortcuts (Super+1..9) running bluefeels/gnome/app-keys/k-appkey; GNOME's switch-to-application keys turned off (put back by the uninstall)"; }
+state_app_keys() { NOTE=""
+  type -P gsettings >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
+  if ak_keys_on && ak_native_off; then STATE=installed
+  elif ak_keys_on || ak_native_off; then STATE=partial
+  else STATE=missing; fi; }
+install_app_keys() {
+  local i
+  if ak_keys_on && ak_native_off; then ok "already set"; return; fi
+  ask "Make Super+1..9 launch, raise or minimize the Nth dock app?" n || { skip; return; }
+  bfwc_live || warn "Window Calls isn't active yet: until it is, Super+number only launches / raises (install it, then log out once)"
+  chmod +x "$ak_cmd"
+  remember_setting app-keys-native "$(gsettings get org.gnome.shell.keybindings switch-to-application-1)"
+  for i in "${ak_n[@]}"; do gsettings set org.gnome.shell.keybindings "switch-to-application-$i" "[]"; done
+  for i in "${ak_n[@]}"; do kb_set "app-key-$i" "App key $i" "$ak_cmd $i" "<Super>$i"; done
+  ok "Super+1..9 set (the keys work right away)"
+}
+uninstall_app_keys() {
+  local i
+  for i in "${ak_n[@]}"; do kb_has "app-key-$i" && kb_del "app-key-$i"; done
+  if [[ -n "$(recall_setting app-keys-native)" ]]; then
+    for i in "${ak_n[@]}"; do gsettings reset org.gnome.shell.keybindings "switch-to-application-$i"; done
+    forget_setting app-keys-native
+    ok "GNOME's own Super+1..9 back"
+  fi
+}
+
 COMPONENTS+=(kitty-bg kitty-theme kitty-accents kitty-icons kitty-centered dash2dock dash-to-panel no-animations notification-key vitals vitals-icons blur-my-shell rounded-corners)
 # Its parts are fk's (the file "kit"): fk install / fk uninstall, never in
 # tk install. Its tabs (a layer names its own groups), what each needs from the machine, and

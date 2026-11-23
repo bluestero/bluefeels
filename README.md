@@ -56,6 +56,11 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 | `zsh` | apt `zsh zsh-autosuggestions`; `~/.zshenv` gets one managed block |
 | `login-shell` | `chsh` to zsh (log out once) |
 | `bashrc-tidy` | Your old `~/.bashrc`: PATH, nvm, direnv/starship hooks and exact copies of `shell/common.sh`'s aliases come out (both shells get them from bluefeels), clashing leftovers (ble.sh, old okcli hooks, duplicate nvm) go; unikit's own line stays. Uninstall puts your lines back |
+| `bluefeels-window-calls` | GNOME extension Window Calls (from extensions.gnome.org) for app-keys and Ctrl+Alt+T (bluetools brings the same one for `ws`: set up once, kept while either has it); log out once after installing |
+| `alt-tab-desktop` | GNOME extension in `bluefeels/gnome/`: after Super+D (show desktop), Alt+Tab returns to the window you minimized instead of the one before it; log out once after installing |
+| `hide-docker-tray` | Small GNOME extension (`bluefeels/gnome/hide-docker-tray@work-toolkit`, linked in) that hides Docker Desktop's tray item: no icon, empty menu, three dots that do nothing on click; log out once after installing |
+| `app-keys` | Super+1..9 for the Nth pinned dock app: launches it, brings it to the front, or minimizes it when it is already in front (`bluefeels/gnome/app-keys/k-appkey`, one short process per key press, no background process; uses Window Calls). Only windows on the current desktop count: with none there, it launches a new one. Turns GNOME's own Super+number off; the uninstall puts it back; asked with default No |
+| `rofi` | apt `rofi`; `~/.config/rofi/config.rasi` → `bluefeels/rofi/config.rasi` (minimal; `colors.rasi` is written by `bluefeels/bin/k-rofi` from the kitty colours in use, and `k-theme` / `k-bg` re-run it on every change); GNOME shortcuts Alt+Space (open windows first, then apps; pick a window to focus it), Alt+Shift+Space (ssh), Super+S (speaker, mic, wifi, bluetooth: pick a row to switch; Bluetooth earbuds get a row per mode, Headset for music and Handsfree for calls with the mic; Ctrl+Tab / Ctrl+Shift+Tab cycle the four; a new secured wifi network asks for its password in the list) and Super+X (power: lock, suspend, hibernate, log out, restart, shut down; the last three ask first). Inside: Tab / Ctrl+Tab switches between apps, ssh, files and power; Esc closes. The shortcuts use `-normal-window` so it gets the keyboard on Wayland |
 | `kitty-bg` | apt `imagemagick` (and fzf if there's none) for the `k-bg` picker, then a first pick (live preview; Esc = no background). Uninstall: background off, resized copies removed |
 | `kitty-theme` | kitty's theme collection (about 0.6 MB from GitHub), a current fzf if yours is older than 0.60, then an optional first pick with `k-theme`. Uninstall: back to kitty's colours (your Mine list stays) |
 | `kitty-accents` | `k-bg accents on`: a vivid colour from the background (always readable against it, never red) for the prompt's directory, `❯` and git branch, the toolkit's pickers and highlights, and kitty's cursor, selection, links, active tab and border. Terminal colours and red prod warnings stay put |
@@ -93,8 +98,10 @@ btop/             btop.conf (btop)
 yazi/             keymap.toml (yazi-keys)
 zsh/              zshrc (zsh's own setup, loaded by shell/init.sh in zsh)
 bash/             bashrc_plan.py and bashrc_restore.py (the bashrc-tidy part)
+rofi/             config.rasi, the launcher icon and bin/ (k-launch and its tabs: apps, ssh, power, speaker/mic/wifi/bluetooth)
 kitty/            kitty.conf (kitty-config), the "Open in Terminal" / Ctrl+Alt+T installer, bin/kitty-focus
-gnome/            one folder per GNOME extension: the preset look (settings.dconf), patches
+gnome/            one folder per GNOME extension: the preset look (settings.dconf), patches; our own
+                  extensions (alt-tab-desktop, hide-docker-tray) and app-keys/k-appkey (Super+1..9)
                   (dash2dock/check-patch.sh tries the patch against the newest release: `fk dash2dock`)
 ```
 
