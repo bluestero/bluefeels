@@ -6,6 +6,7 @@ only about looks, so the toolkit itself stays about work.
 
 | Part | What it gives you |
 |---|---|
+| `k-config` | Edit `bluefeels/kitty/kitty.conf` (the file kitty reads through the link) in `$EDITOR` (else nano); warns if the link is missing. kitty reloads it by itself on save (0.47+). |
 | `k-bg` | Kitty background picker: live preview, brightness, opacity, accent colours taken from the image |
 | `k-theme` | Kitty colour themes with live preview: your short list plus kitty's 400+ |
 | `k-icon` | Extra kitty app icons to pick from |
@@ -44,6 +45,9 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 
 | Part | What it sets up |
 |---|---|
+| `kitty` | the kitty terminal itself: the latest official build (checksum-checked) in `~/.local/kitty.app`; `kitty`/`kitten` in `~/.local/bin`, the app menu entry and Ctrl+Alt+T point at it. Ubuntu's apt kitty stays as the fallback (uninstall goes back to it). `./install.sh ls` shows when there's a newer one |
+| `kitty-config` | `~/.config/kitty/kitty.conf` → `bluefeels/kitty/kitty.conf` |
+| `kitty-nautilus` | `bluefeels/kitty/install-kitty-gnome.sh` (kitty as default terminal, Open in Terminal in Files; Ctrl+Alt+T focuses the open kitty window, or starts kitty, via `bluefeels/kitty/bin/kitty-focus`, and Ctrl+Shift+Alt+T opens a new window) |
 | `kitty-bg` | apt `imagemagick` (and fzf if there's none) for the `k-bg` picker, then a first pick (live preview; Esc = no background). Uninstall: background off, resized copies removed |
 | `kitty-theme` | kitty's theme collection (about 0.6 MB from GitHub), a current fzf if yours is older than 0.60, then an optional first pick with `k-theme`. Uninstall: back to kitty's colours (your Mine list stays) |
 | `kitty-accents` | `k-bg accents on`: a vivid colour from the background (always readable against it, never red) for the prompt's directory, `❯` and git branch, the toolkit's pickers and highlights, and kitty's cursor, selection, links, active tab and border. Terminal colours and red prod warnings stay put |
@@ -62,13 +66,14 @@ What `fk install <part>` sets up, and what `fk uninstall <part>` puts back.
 
 ```
 components.sh     the installer components (kitty-bg, kitty-theme, ..., rounded-corners)
-bin/              k-bg, k-theme, k-icon, k-rofi
+bin/              k-config, k-bg, k-theme, k-icon, k-rofi
 fk/               dash2dock (`fk dash2dock`); the extensions' presets are in `fk configs` (config_<id> in components.sh)
 shell/            init.sh (loaded by every shell) and the tab-completion hooks
 tools             what fk's picker and `fk help` show for these commands
 backgrounds/      the images k-bg offers (licences in backgrounds/SOURCES.md)
 themes/           team themes for k-theme (yours go in ~/.config/kitty/themes)
 kitty-icons/      the kitty icon installer and cleanup
+kitty/            kitty.conf (kitty-config), the "Open in Terminal" / Ctrl+Alt+T installer, bin/kitty-focus
 gnome/            one folder per GNOME extension: the preset look (settings.dconf), patches
                   (dash2dock/check-patch.sh tries the patch against the newest release: `fk dash2dock`)
 ```

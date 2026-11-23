@@ -16,4 +16,5 @@ unset _kbg_star _kbg_src
 for _f in k-icon k-bg k-theme; do   # tab completion
   [ -r "$_fk/shell/$_f.sh" ] && . "$_fk/shell/$_f.sh"
 done
+unset -f k-config 2>/dev/null   # older toolkit versions defined it as a function
 unset _fk _f
