@@ -1,0 +1,14 @@
+# Claude Code plugins: coding guidelines and skills from their authors' GitHub repos.
+# unikit's uk skills (and tk install claude-skill) picks which Claude profiles get which.
+# plugin@marketplace|GitHub repo|what it gives
+andrej-karpathy-skills@karpathy-skills|multica-ai/andrej-karpathy-skills|Karpathy guidelines: think before coding, keep it simple, small diffs, verify the goal
+superpowers@superpowers-dev|obra/superpowers|Superpowers: brainstorm, write and run plans, TDD, systematic debugging, code review
+document-skills@anthropic-agent-skills|anthropics/skills|Anthropic documents: read and write Word, Excel, PowerPoint and PDF files
+example-skills@anthropic-agent-skills|anthropics/skills|Anthropic examples: skill creator, frontend design, web app testing, MCP builder
+differential-review@trailofbits|trailofbits/skills|ToB diff review: security review of a change: git history, blast radius
+insecure-defaults@trailofbits|trailofbits/skills|ToB insecure defaults: hardcoded credentials, fallback secrets, weak auth defaults
+sharp-edges@trailofbits|trailofbits/skills|ToB sharp edges: error-prone APIs, dangerous configs, footgun designs
+static-analysis@trailofbits|trailofbits/skills|ToB static analysis: CodeQL, Semgrep and SARIF to find vulnerabilities
+property-based-testing@trailofbits|trailofbits/skills|ToB property tests: write and triage property-based tests (Hypothesis, fast-check, proptest)
+supply-chain-risk-auditor@trailofbits|trailofbits/skills|ToB supply chain: audit npm, PyPI and Go dependencies for supply-chain risk
+modern-python@trailofbits|trailofbits/skills|ToB modern Python: modern Python practice for new projects and migrations
