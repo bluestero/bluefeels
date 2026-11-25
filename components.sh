@@ -2,7 +2,7 @@
 # the GNOME bar, dock, blur, corners, Vitals). A layer of the toolkit (lib/layers.sh): it
 # adds its components to the installer, and the helpers they use (ask, ok, gx_*, look_*, ...)
 # come from the toolkit's lib/components.sh, which loads this file at its end.
-fk="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fk="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
 
 # --------------------------------------------------------------- Kitty ---
 # The kitty terminal (came from unikit, tasks/14): the program, its settings, Files' "Open in
