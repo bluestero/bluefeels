@@ -1132,6 +1132,8 @@ dtp_uuid="dash-to-panel@jderose9.github.com"
 dtp_dir="$HOME/.local/share/gnome-shell/extensions/$dtp_uuid"; dtp_src="$fk/gnome/dash-to-panel"
 dtp_path=/org/gnome/shell/extensions/dash-to-panel/
 dtp_ignore='^panel-(anchors|element-positions|lengths|positions|sizes)$'   # stored per monitor id
+# A monitor with no entry of its own there (its id changes with super+P, and the extension renames
+# "0" to the first monitor's id when it starts) falls back to panel-size: the preset sets it too.
 dtp_present() { [[ -d "$dtp_dir" ]]; }
 dtp_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$dtp_uuid'"; }
 label_dash_to_panel() { echo "One bar (Dash to Panel)"; }

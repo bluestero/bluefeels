@@ -39,6 +39,7 @@ panel-lengths='{"0":100}'
 panel-positions='{"0":"BOTTOM"}'
 panel-side-margins=0
 panel-side-padding=0
+panel-size=35
 panel-sizes='{"0":35}'
 panel-top-bottom-margins=0
 panel-top-bottom-padding=0
