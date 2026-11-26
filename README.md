@@ -28,11 +28,11 @@ A look for [unikit](https://github.com/bluestero/unikit)'s `fk`: the kitty termi
 You need [unikit](https://github.com/bluestero/unikit#get-it) first. Then:
 
 ```bash
-uk layer add https://github.com/bluestero/bluefeels.git bluefeels
-fk install
+uk layer add bluefeels     # shows what runs here, asks, then offers to set up its parts
 ```
 
-Its parts are `fk`'s, so `fk install` sets them up, never `tk install`. Nothing is ticked until you tick it.
+Or tick it on unikit's first run (`install.sh` offers it), then `fk install`. Its parts are `fk`'s,
+so `fk install` sets them up any time, never `tk install`. Nothing is ticked until you tick it.
 
 <br>
 
