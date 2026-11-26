@@ -87,7 +87,7 @@ install_kitty() {
   if ! kapp_desktop_ok && ask "Open the new kitty from the app menu and dock?"; then
     mkdir -p "$(dirname "$kitty_desktop")"
     if [[ ! -f "$kitty_desktop" ]]; then
-      cp "$kapp/share/applications/kitty.desktop" "$kitty_desktop"
+      put_copy "$kapp/share/applications/kitty.desktop" "$kitty_desktop"
       sed -i "s|^Icon=kitty$|Icon=$kapp/share/icons/hicolor/256x256/apps/kitty.png|" "$kitty_desktop"
     fi
     sed -i -E "s#^(Try)?Exec=kitty( |$)#\1Exec=$kapp_bin\2#" "$kitty_desktop"
@@ -144,7 +144,7 @@ uninstall_kitty_config() {
   rm -f "$kc"
   local b; b=$(latest_backup "$kc")
   if [[ -n "$b" ]]; then mv "$b" "$kc"; ok "unlinked, put back ${b/#$HOME/\~}"
-  else cp "$kc_src" "$kc"; ok "unlinked (left a plain copy so kitty keeps its settings)"; fi
+  else put_copy "$kc_src" "$kc"; ok "unlinked (left a plain copy so kitty keeps its settings)"; fi
 }
 
 # ------------------------------------------------------ kitty-nautilus ---
@@ -323,9 +323,9 @@ install_bashrc_tidy() {
   grep -qE '^[[:space:]]*alias okcli=' "$rc" && warn "an active 'alias okcli=' stays in ~/.bashrc; it would shadow okcli"
   if ask "Update ~/.bashrc?"; then
     b=$(backup "$rc")
-    cat "$BASH_PLAN" >"$rc"
+    put_out "$rc" cat "$BASH_PLAN"
     if bash -n "$rc"; then ok "done (backup: ${b/#$HOME/\~})"
-    else cp -p "$b" "$rc"; fail "syntax error in the result, so the original was put back"; fi
+    else put_copy "$b" "$rc"; fail "syntax error in the result, so the original was put back"; fi
   else skip "--details shows the diff"; fi
   rm -f "$BASH_PLAN"
 }
@@ -342,9 +342,9 @@ uninstall_bashrc_tidy() {
     logf "--- ~/.bashrc restore diff ---"; diff -u "$rc" "$merged" --label "~/.bashrc" --label "~/.bashrc (restored)" >>"$log_file"
     if (( n )) && ask "Put back the $n line(s) taken out of ~/.bashrc? (your edits since are kept)"; then
       b=$(backup "$rc")
-      if grep -qE "$init_re" "$rc"; then { cat "$merged"; printf '\n%s\n' "$init_line"; } >"$rc"; else cat "$merged" >"$rc"; fi
+      if grep -qE "$init_re" "$rc"; then put_out "$rc" eval 'cat "$merged"; printf "\n%s\n" "$init_line"'; else put_out "$rc" cat "$merged"; fi
       if bash -n "$rc"; then ok "put back your $n line(s) (backup: ${b/#$HOME/\~})"
-      else cp -p "$b" "$rc"; fail "syntax error after putting them back, so ~/.bashrc is unchanged; your original: ${orig/#$HOME/\~}"; fi
+      else put_copy "$b" "$rc"; fail "syntax error after putting them back, so ~/.bashrc is unchanged; your original: ${orig/#$HOME/\~}"; fi
       rm -f "$merged" "$base"; return
     fi
   elif [[ -n "$orig" ]]; then
@@ -372,7 +372,7 @@ bt_merge() {   # the preset, your patch's "key = value" lines in place of its ow
 }
 bt_kv() { grep -E '^[A-Za-z_]+[[:space:]]*=' "$@" | sed -E 's/[[:space:]]*=[[:space:]]*/ = /' | sort; }   # the settings alone
 bt_ours() { [[ -f $bt && ! -L $bt && "$(bt_kv "$bt")" == "$(bt_merge | bt_kv)" ]]; }   # the preset (and patch) as written
-bt_build() { mkdir -p "${bt%/*}" "${bt_made%/*}"; rm -f "$bt"; bt_merge >"$bt" && sha256sum "$bt" | cut -d' ' -f1 >"$bt_made"; }
+bt_build() { mkdir -p "${bt%/*}" "${bt_made%/*}"; rm -f "$bt"; put_out "$bt" bt_merge && sha256sum "$bt" | cut -d' ' -f1 >"$bt_made"; }
 kth="$fk/bin/k-theme"
 label_btop() { echo "btop"; }
 config_btop() { echo "file|btop|btop|$bt|$bt_src|merge|btop.conf|system monitor"; }
@@ -442,8 +442,8 @@ fetch_yazi() {
   [[ "$sum" == "$want" ]] || { warn "yazi download didn't match its checksum, so it wasn't installed"; rm -rf "$tmp"; return 1; }
   unzip -qo -j "$tmp/$f" '*/yazi' '*/ya' -d "$tmp/out" 2>>"$log_file" || { warn "no yazi in the download"; rm -rf "$tmp"; return 1; }
   mkdir -p "$HOME/.local/bin"
-  install -m 755 "$tmp/out/yazi" "$HOME/.local/bin/yazi"
-  install -m 755 "$tmp/out/ya" "$HOME/.local/bin/ya"
+  put_copy -m 755 "$tmp/out/yazi" "$HOME/.local/bin/yazi"
+  put_copy -m 755 "$tmp/out/ya" "$HOME/.local/bin/ya"
   rm -rf "$tmp"
   logf "yazi $YAZI_VERSION installed to ~/.local/bin"
 }
@@ -532,13 +532,12 @@ launcher_entry_set() { [[ -f "$launcher_icon" ]] && grep -qxF "Exec=$fk/rofi/bin
   [[ -f "$HOME/.local/share/applications/rofi.desktop" ]]; }
 install_launcher_entry() {
   mkdir -p "$launcher_icon_dir" "$HOME/.local/share/applications"
-  convert "$fk/rofi/rofi-icon.png" -resize 512x512 "$launcher_icon" 2>>"$log_file" ||
-    install -m 644 "$fk/rofi/rofi-icon.png" "$launcher_icon"
-  printf '%s\n' "[Desktop Entry]" "Type=Application" "Name=Launcher" "Comment=App launcher (Alt+Space)" \
-    "Exec=$fk/rofi/bin/k-launch apps" "Icon=k-launch" "Terminal=false" "Categories=Utility;" "StartupWMClass=Rofi" \
-    >"$HOME/.local/share/applications/k-launch.desktop"
+  put_out "$launcher_icon" convert "$fk/rofi/rofi-icon.png" -resize 512x512 png:- 2>>"$log_file" ||
+    put_copy -m 644 "$fk/rofi/rofi-icon.png" "$launcher_icon"
+  put_out "$HOME/.local/share/applications/k-launch.desktop" printf '%s\n' "[Desktop Entry]" "Type=Application" "Name=Launcher" "Comment=App launcher (Alt+Space)" \
+    "Exec=$fk/rofi/bin/k-launch apps" "Icon=k-launch" "Terminal=false" "Categories=Utility;" "StartupWMClass=Rofi"
   # GNOME's panel matches rofi's window to the system rofi.desktop (a gear icon); this copy wins over it
-  sed "s|^Icon=.*|Icon=k-launch|" /usr/share/applications/rofi.desktop >"$HOME/.local/share/applications/rofi.desktop"
+  put_out "$HOME/.local/share/applications/rofi.desktop" sed "s|^Icon=.*|Icon=k-launch|" /usr/share/applications/rofi.desktop
 }
 
 
@@ -1038,8 +1037,8 @@ install_vitals_icons() {
   dry && return
   local f
   for f in "${vi_files[@]}"; do
-    [[ -e "$vi_dir/$f.toolkit-orig" ]] || cp "$vi_dir/$f" "$vi_dir/$f.toolkit-orig"
-    cp "$fk/gnome/vitals-icons/$f" "$vi_dir/$f"
+    [[ -e "$vi_dir/$f.toolkit-orig" ]] || put_copy "$vi_dir/$f" "$vi_dir/$f.toolkit-orig"   # kept once: never half
+    put_copy "$fk/gnome/vitals-icons/$f" "$vi_dir/$f"
   done
   remember_setting vitals-menu-centered "$(vi_gs get $vi_key menu-centered)"
   vi_gs set $vi_key menu-centered true
