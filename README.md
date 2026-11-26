@@ -4,6 +4,8 @@ A look for [unikit](https://github.com/bluestero/unikit)'s `fk`: the kitty termi
 
 <!-- The paragraph above is what `uk layers` shows on its about card: keep it plain text, first under the title. -->
 
+![bluefeels on a GNOME desktop: kitty with a background, the bottom bar and Vitals](docs/images/full-feel.png)
+
 <br>
 
 ## Why you'll like it
@@ -50,6 +52,16 @@ Its parts are `fk`'s, so `fk install` sets them up, never `tk install`. Nothing 
 | `k-icon` | pick kitty's app icon |
 | `k-config` | edit kitty's config; kitty reloads it on save |
 | `fk configs` | switch each app's preset: bluefeels', the app's default, or yours |
+
+<details>
+<summary><b>See <code>k-bg</code> and <code>k-theme</code></b></summary>
+<br>
+
+![k-bg: pick a background with a live preview, brightness and opacity](docs/images/k-bg.png)
+
+![k-theme: 400+ themes, dark and light, previewed live](docs/images/k-theme.png)
+
+</details>
 
 **Keys**
 
