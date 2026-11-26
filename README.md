@@ -13,6 +13,9 @@ A look for [unikit](https://github.com/bluestero/unikit)'s `fk`: the kitty termi
 - 🖼️ **Your background sets the colours.** Pick a background and the prompt, pickers, cursor and selection take a colour from it, always readable.
 - 🎨 **400+ themes, previewed live.** Your short list plus every kitty theme, and rofi and btop follow along.
 - 🚀 **One launcher for everything.** Windows, apps, ssh, speaker, mic, wifi, Bluetooth and power, all from the keyboard.
+
+  <img src="docs/images/rofi-launcher.png" alt="The launcher (Alt+Space): apps and open windows, typed to search" width="520">
+
 - ⌨️ **Super+1..9 opens your dock apps.** Launch, bring to front, or minimize: one key.
 - 🐚 **bash and zsh feel the same.** One prompt, the same aliases and keys, with suggestions from your history in zsh.
 - 🧱 **A calmer GNOME.** One bar or a dock, system readings in the top bar, blur, rounded corners.
