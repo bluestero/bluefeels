@@ -3,4 +3,4 @@ k-config|Kitty|edit kitty.conf|kitty
 k-bg|Kitty|background image, brightness, opacity, accent colours|kitty
 k-theme|Kitty|colour theme with live preview; Mine / All tabs|kitty
 k-icon|Kitty|kitty's app icon|kitty
-fk dash2dock|Desktop|try our Dash2Dock patch against the newest release (or a folder/zip), hunk by hunk|
+fk dash2dock|Desktop|test our Dash2Dock patch on its newest release|

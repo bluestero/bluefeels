@@ -38,7 +38,7 @@ kapp_desktop_ok() { grep -q "^Exec=$kapp_bin" "$kitty_desktop" 2>/dev/null; }
 term_alt() { update-alternatives --query x-terminal-emulator 2>/dev/null | sed -n 's/^Value: //p'; }
 
 label_kitty() { echo "Kitty (latest)"; }
-title_kitty() { echo "The kitty terminal itself, kept on its latest official release (Ubuntu's apt one lags behind)"; }
+title_kitty() { echo "The kitty terminal, on its latest release"; }
 detail_kitty() { echo "official build in ~/.local/kitty.app, kitty/kitten in ~/.local/bin, app menu entry; apt kitty kept as a fallback"; }
 state_kitty() {
   NOTE=""
@@ -175,8 +175,8 @@ group_starship() { echo Shell; }; group_btop() { echo "Terminal apps"; }
 group_yazi() { echo "Terminal apps"; }; group_yazi_keys() { echo "Terminal apps"; }
 requires_btop() { echo apt; }; requires_yazi() { echo linux; }; requires_yazi_keys() { echo linux; }
 NEEDS+=([yazi-keys]=yazi)
-GROUP_ABOUT[Shell]="Your shell: the starship prompt, Tab and history keys, zsh (and as your default), your old ~/.bashrc tidied."
-GROUP_ABOUT["Terminal apps"]="btop (system monitor) and yazi (file manager; y opens it), coloured like kitty."
+GROUP_ABOUT[Shell]="Your shell: the prompt, Tab and history keys, zsh, your ~/.bashrc."
+GROUP_ABOUT["Terminal apps"]="btop and yazi (y opens it), coloured like kitty."
 # ------------------------------------------------------------ starship ---
 ss="$HOME/.config/starship.toml"; ss_src="$fk/starship/starship.toml"
 label_starship() { echo "Starship prompt"; }
@@ -194,7 +194,7 @@ config_saved_starship() {
   if [[ -n $err ]]; then head -1 <<<"$err"
   else echo "✓ starship: your patch saved (new terminals pick it up; with k-bg, this one too)"; fi
 }
-title_starship() { echo "Prompt showing git branch, k8s cluster, AWS profile and PROD warnings"; }
+title_starship() { echo "A prompt with git branch, cluster, AWS profile, PROD"; }
 detail_starship() { echo "prompt config (git + GitHub account when it isn't your default, Python virtualenv, k8s, AWS profile + expiry, PROD markers); starship itself, latest from GitHub (sha256-checked), in ~/.local/bin if it isn't installed"; }
 state_starship() { NOTE=""; if linked "$ss" "$ss_src"; then STATE=installed; else STATE=missing; fi
   type -P starship >/dev/null || { NOTE="starship itself isn't installed"; [[ $STATE == installed ]] && STATE=partial; }; }
@@ -211,7 +211,7 @@ touches_starship() { echo "$ss"; }
 inputrc_src="$fk/shell/inputrc"
 label_keys() { echo "Tab & history keys"; }
 config_keys() { echo "file|readline|bash|$HOME/.inputrc|$inputrc_src|link|inputrc|keys at the bash prompt (~/.inputrc)"; }
-title_keys() { echo "Smarter Tab completion; ↑/↓ searches history by what you typed"; }
+title_keys() { echo "Smarter Tab; ↑/↓ searches history by what you typed"; }
 detail_keys() { echo "~/.inputrc for bash (case-insensitive Tab, Up/Down search by what's typed)"; }
 state_keys() { NOTE=""; if linked "$HOME/.inputrc" "$inputrc_src"; then STATE=installed; else STATE=missing; fi; }
 install_keys() { linked "$HOME/.inputrc" "$inputrc_src" && { ok "already linked"; return; }
@@ -292,7 +292,7 @@ uninstall_login_shell() {   # back to the shell you had before (bash if unknown)
 # layers now give both shells comes out, clashing leftovers go; unikit's own line (its bash
 # part) stays. The uninstall puts your lines back (bash/bashrc_restore.py).
 label_bashrc_tidy() { echo "~/.bashrc tidy-up"; }
-title_bashrc_tidy() { echo "Your old ~/.bashrc aliases and settings come from bluefeels in both shells; leftovers that clash go"; }
+title_bashrc_tidy() { echo "Your old ~/.bashrc, tidied into both shells"; }
 detail_bashrc_tidy() { echo "~/.bashrc: copies of shell/common.sh (aliases, PATH, nvm) and old hooks taken out; unikit's line kept"; }
 bash_plan() {
   BASH_PLAN=$(mktemp)
@@ -382,7 +382,7 @@ merge_ours_btop() { bt_ours; }
 merge_made_btop() { echo "$bt_made"; }
 merge_keep_btop() { comm -23 <(bt_kv "$bt") <(bt_merge | bt_kv); }
 config_saved_btop() { bt_build; echo "✓ btop: your patch saved (btop reads it when it starts)"; }
-title_btop() { echo "btop system monitor, set up to follow your kitty colour theme"; }
+title_btop() { echo "btop system monitor, in your kitty colours"; }
 detail_btop() { echo "btop (apt) if missing; ~/.config/btop/btop.conf: bluefeels/btop/btop.conf with your patch over it; kitty.theme written by k-theme"; }
 state_btop() { NOTE=""
   local n=0
@@ -484,7 +484,7 @@ yk_src="$fk/yazi/keymap.toml"
 yk_file="$HOME/.config/yazi/keymap.toml"
 label_yazi_keys() { echo "yazi keys"; }
 config_yazi_keys() { echo "file|yazi keys|yazi|$yk_file|$yk_src|block||> and ctrl+backspace in yazi"; }
-title_yazi_keys() { echo "yazi: > picks a folder inside this one; ctrl+backspace deletes a word"; }
+title_yazi_keys() { echo "yazi keys: > picks a folder, ctrl+backspace a word"; }
 detail_yazi_keys() { echo "a marked block from bluefeels/yazi/keymap.toml in ~/.config/yazi/keymap.toml (the file is made if it's missing); needs fzf"; }
 # yazi's keymap can't have both prepend_keymap = [...] and [[...prepend_keymap]] for one layer:
 # true when the file already has the first form, outside our block
@@ -518,7 +518,7 @@ group_bluefeels_window_calls() { echo Desktop; }; group_alt_tab_desktop() { echo
 group_hide_docker_tray() { echo Desktop; }; group_app_keys() { echo Desktop; }; group_rofi() { echo Desktop; }
 requires_bluefeels_window_calls() { echo gnome; }; requires_alt_tab_desktop() { echo gnome; }
 requires_hide_docker_tray() { echo gnome; }; requires_app_keys() { echo gnome; }; requires_rofi() { echo gnome apt; }
-GROUP_ABOUT[Desktop]="GNOME extensions and shortcuts: windows, Super+number app keys, the rofi launcher (Alt+Space, Super+S, Super+X)."
+GROUP_ABOUT[Desktop]="GNOME windows and shortcuts: app keys, the rofi launcher."
 # The launcher entry (gives rofi's window an icon in a dock or panel); shared by rofi and the docks
 launcher_icon_dir="$HOME/.local/share/icons/hicolor/512x512/apps"; launcher_icon="$launcher_icon_dir/k-launch.png"
 # a layer can ask to keep it by defining wants_launcher_entry
@@ -551,7 +551,7 @@ bfwc_present() { [[ -d "$HOME/.local/share/gnome-shell/extensions/$bfwc_uuid" ]]
 bfwc_live() { gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell/Extensions/Windows \
   --method org.gnome.Shell.Extensions.Windows.List >/dev/null 2>&1; }
 label_bluefeels_window_calls() { echo "Window Calls"; }
-title_bluefeels_window_calls() { echo "Let scripts list, focus and close windows (GNOME extension; log out once)"; }
+title_bluefeels_window_calls() { echo "Lets scripts focus and close windows (log out once)"; }
 touches_bluefeels_window_calls() { echo "$HOME/.local/share/gnome-shell/extensions/$bfwc_uuid"; }
 detail_bluefeels_window_calls() { echo "GNOME extension $bfwc_uuid from extensions.gnome.org into ~/.local/share/gnome-shell/extensions"; }
 state_bluefeels_window_calls() {
@@ -609,7 +609,7 @@ atd_uuid="alt-tab-desktop@bluefeels"
 atd_dir="$HOME/.local/share/gnome-shell/extensions/$atd_uuid"; atd_src="$fk/gnome/$atd_uuid"
 atd_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$atd_uuid'"; }
 label_alt_tab_desktop() { echo "Alt+Tab after Show Desktop"; }
-title_alt_tab_desktop() { echo "After Super+D, Alt+Tab returns to the window you minimized (GNOME extension; log out once)"; }
+title_alt_tab_desktop() { echo "Alt+Tab after Super+D brings your window back"; }
 detail_alt_tab_desktop() { echo "~/.local/share/gnome-shell/extensions/$atd_uuid -> bluefeels/gnome/$atd_uuid, added to enabled extensions"; }
 state_alt_tab_desktop() { NOTE=""
   type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
@@ -636,7 +636,7 @@ hdt_uuid="hide-docker-tray@bluefeels"
 hdt_dir="$HOME/.local/share/gnome-shell/extensions/$hdt_uuid"; hdt_src="$fk/gnome/$hdt_uuid"
 hdt_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$hdt_uuid'"; }
 label_hide_docker_tray() { echo "Hide Docker's tray dots"; }
-title_hide_docker_tray() { echo "hides Docker Desktop's dead three-dots tray icon (GNOME extension; log out once)"; }
+title_hide_docker_tray() { echo "Hides Docker Desktop's dead tray icon (log out once)"; }
 detail_hide_docker_tray() { echo "~/.local/share/gnome-shell/extensions/$hdt_uuid -> bluefeels/gnome/$hdt_uuid, added to enabled extensions"; }
 state_hide_docker_tray() { NOTE=""
   type -P gnome-shell >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
@@ -662,7 +662,7 @@ uninstall_hide_docker_tray() {
 rofi_conf="$HOME/.config/rofi/config.rasi"; rofi_src="$fk/rofi/config.rasi"
 label_rofi() { echo "Rofi launcher"; }
 config_rofi() { echo "file|rofi|rofi|$rofi_conf|$rofi_src|link|rofi.rasi|launcher style"; }
-title_rofi() { echo "Alt+Space opens an app launcher (Alt+Shift+Space ssh, Super+X power menu, Super+S speaker/mic/wifi/bluetooth), styled like kitty"; }
+title_rofi() { echo "Alt+Space app launcher, plus power and sound menus"; }
 detail_rofi() { echo "rofi (apt) if missing; ~/.config/rofi/config.rasi -> bluefeels/rofi/config.rasi; four GNOME shortcuts (Alt+Space, Alt+Shift+Space, Super+X, Super+S); launcher icon (bluefeels/rofi/rofi-icon.png) in the app list and dock"; }
 # rofi's config @imports files (colours, your patch); a missing one makes rofi open with an error box
 doctor_rofi() {
@@ -734,7 +734,7 @@ ak_cmd="$fk/gnome/app-keys/k-appkey"
 ak_keys_on() { local i; for i in "${ak_n[@]}"; do kb_runs "app-key-$i" "$ak_cmd $i" || return 1; done; }
 ak_native_off() { [[ "$(gsettings get org.gnome.shell.keybindings switch-to-application-1)" == "@as []" ]]; }
 label_app_keys() { echo "Super+number app keys"; }
-title_app_keys() { echo "Super+1..9 launches, raises or minimizes the Nth dock app (needs Window Calls; replaces GNOME's own)"; }
+title_app_keys() { echo "Super+1..9 opens or raises the Nth dock app"; }
 detail_app_keys() { echo "nine GNOME shortcuts (Super+1..9) running bluefeels/gnome/app-keys/k-appkey; GNOME's switch-to-application keys turned off (put back by the uninstall)"; }
 state_app_keys() { NOTE=""
   type -P gsettings >/dev/null || { STATE=unsupported; NOTE="needs GNOME"; return; }
@@ -773,8 +773,8 @@ group_no_animations() { echo "GNOME looks"; }; group_notification_key() { echo "
 group_vitals() { echo "GNOME looks"; }
 group_vitals_icons() { echo "GNOME looks"; }; group_blur_my_shell() { echo "GNOME looks"; }
 group_rounded_corners() { echo "GNOME looks"; }
-GROUP_ABOUT["Kitty looks"]="How kitty looks: background images, colour themes, accents from the background, app icons, centred windows."
-GROUP_ABOUT["GNOME looks"]="How GNOME looks: one bar or a dock, Vitals in the top bar, blur, rounded corners, no animations, Super+V alone opens notifications."
+GROUP_ABOUT["Kitty looks"]="Kitty's background, colour theme, accents, icon and centred windows."
+GROUP_ABOUT["GNOME looks"]="GNOME's bar or dock, Vitals, blur, rounded corners, no animations."
 # Dash2Dock and Dash to Panel both sit on the bottom edge: with both ticked (or one ticked
 # and the other in already) the summary asks once.
 CLASHES+=("dash2dock dash-to-panel|Both bars use the same space. Keep both?")
@@ -794,7 +794,7 @@ wants_launcher_entry() { d2d_present || d2d_other_bar; }
 kbg_conf="$HOME/.config/kitty/background.conf"
 kbg_pkgs=(imagemagick)
 label_kitty_bg() { echo "Kitty backgrounds"; }
-title_kitty_bg() { echo "Background images with live preview, brightness and opacity (k-bg)"; }
+title_kitty_bg() { echo "Background images with live preview (k-bg)"; }
 detail_kitty_bg() { echo "imagemagick (apt) to resize images, fzf for the picker; your pick in ~/.config/kitty/background.conf"; }
 state_kitty_bg() { NOTE=""
   type -P kitty >/dev/null || { STATE=n/a; NOTE="kitty isn't installed"; return; }
@@ -837,7 +837,7 @@ kth="$fk/bin/k-theme"
 kth_conf="$HOME/.config/kitty/theme.conf"
 kth_data="${XDG_DATA_HOME:-$HOME/.local/share}/k-theme"
 label_kitty_theme() { echo "Kitty themes"; }
-title_kitty_theme() { echo "Colour themes with live preview, yours plus kitty's 400+ (k-theme)"; }
+title_kitty_theme() { echo "Colour themes with live preview (k-theme)"; }
 detail_kitty_theme() { echo "kitty's theme collection into ${kth_data/#$HOME/\~} (about 0.6 MB); fzf $FZF_MIN+ for the picker; your list in ~/.config/k-theme/mine"; }
 state_kitty_theme() { NOTE=""
   type -P kitty >/dev/null || { STATE=n/a; NOTE="kitty isn't installed"; return; }
@@ -879,7 +879,7 @@ kbg="$fk/bin/k-bg"
 # on only in a saved background.conf (k-bg reads a missing one as accents on)
 ka_on() { [[ -f $kbg_conf && "$("$kbg" __accents_state 2>/dev/null)" == on ]]; }
 label_kitty_accents() { echo "Kitty accents"; }
-title_kitty_accents() { echo "Prompt, pickers, cursor and selection take a colour from the background"; }
+title_kitty_accents() { echo "Prompt and picker colours from the background"; }
 detail_kitty_accents() { echo "k-bg accents on: colour lines in ~/.config/kitty/background.conf (terminal colours unchanged)"; }
 state_kitty_accents() { NOTE=""
   type -P kitty >/dev/null || { STATE=n/a; NOTE="kitty isn't installed"; return; }
@@ -918,7 +918,7 @@ uninstall_kitty_icons() { bash "$fk/kitty-icons/cleanup-kitty-icons.sh"; }
 # the screen (kitty can't choose its own position on Wayland).
 ctr_schema=org.gnome.mutter ctr_key=center-new-windows
 label_kitty_centered() { echo "Centered windows"; }
-title_kitty_centered() { echo "Open new windows (kitty included) in the middle of the screen"; }
+title_kitty_centered() { echo "New windows open in the middle of the screen"; }
 detail_kitty_centered() { echo "GNOME setting $ctr_schema $ctr_key = true (your old value is kept for the uninstall)"; }
 state_kitty_centered() { NOTE=""
   type -P gsettings >/dev/null && gsettings list-keys "$ctr_schema" 2>/dev/null | grep -qx "$ctr_key" ||
@@ -941,7 +941,7 @@ uninstall_kitty_centered() {
 # GNOME's window zoom animations make fast open/close windows (the rofi launcher) flash blurry.
 anim_schema=org.gnome.desktop.interface anim_key=enable-animations
 label_no_animations() { echo "No window animations"; }
-title_no_animations() { echo "Turn off GNOME's window animations (browsers then drop CSS animations too: reduced motion)"; }
+title_no_animations() { echo "Turn off GNOME's window animations"; }
 detail_no_animations() { echo "GNOME setting $anim_schema $anim_key = false (your old value is kept for the uninstall)"; }
 state_no_animations() { NOTE=""
   type -P gsettings >/dev/null && gsettings list-keys "$anim_schema" 2>/dev/null | grep -qx "$anim_key" ||
@@ -985,7 +985,7 @@ uninstall_notification_key() {
 # fixed widths, alphabetical dropdown. vitals-icons (below) adds the chip icons.
 vt_uuid="Vitals@CoreCoding.com"; vt_path=/org/gnome/shell/extensions/vitals/; vt_file="$fk/gnome/vitals/settings.dconf"
 label_vitals() { echo "Vitals"; }
-title_vitals() { echo "CPU, memory and temperature in the top bar (GNOME extension; log out once)"; }
+title_vitals() { echo "CPU, memory and temperature in the top bar (log out once)"; }
 detail_vitals() { echo "GNOME extension $vt_uuid from extensions.gnome.org + preset look bluefeels/gnome/vitals (sensors shown, fixed widths); the uninstall offers your earlier settings or the defaults"; }
 state_vitals() { gx_state "$vt_uuid" "$vt_path" "$vt_file"; }
 config_vitals() { echo "dconf|Vitals|$vt_uuid|$vt_path|$vt_file|$vt_uuid|CPU, memory and network readings in the top bar|"; }
@@ -1007,7 +1007,7 @@ uninstall_blur_my_shell() { gx_uninstall "$bm_uuid" "Blur my Shell" "$bm_path"; 
 # Rounded Window Corners Reborn: 15 px corners, kept off for maximized and fullscreen windows.
 rc_uuid="rounded-window-corners@fxgn"; rc_path=/org/gnome/shell/extensions/rounded-window-corners-reborn/; rc_file="$fk/gnome/rounded-window-corners/settings.dconf"
 label_rounded_corners() { echo "Rounded corners"; }
-title_rounded_corners() { echo "Rounded corners on every window (GNOME extension; log out once)"; }
+title_rounded_corners() { echo "Rounded corners on every window (log out once)"; }
 detail_rounded_corners() { echo "GNOME extension $rc_uuid from extensions.gnome.org + preset look bluefeels/gnome/rounded-window-corners (15 px); the uninstall offers your earlier settings or the defaults"; }
 state_rounded_corners() { gx_state "$rc_uuid" "$rc_path" "$rc_file"; }
 config_rounded_corners() { echo "dconf|Rounded Window Corners|$rc_uuid|$rc_path|$rc_file|$rc_uuid|rounded corners on every window|"; }
@@ -1026,7 +1026,7 @@ vi_key=org.gnome.shell.extensions.vitals
 vi_centered() { [[ "$(vi_gs get $vi_key menu-centered 2>/dev/null)" == true ]]; }
 vi_same() { local f; for f in "${vi_files[@]}"; do cmp -s "$fk/gnome/vitals-icons/$f" "$vi_dir/$f" || return 1; done; }
 label_vitals_icons() { echo "Vitals icons"; }
-title_vitals_icons() { echo "Clear CPU chip and RAM chip icons in the Vitals top bar, dropdown centred under it"; }
+title_vitals_icons() { echo "Clearer CPU and RAM icons in Vitals"; }
 detail_vitals_icons() { echo "two SVGs copied into the Vitals extension's icons/original folder (stock ones kept for the uninstall); Vitals setting menu-centered = true"; }
 state_vitals_icons() { NOTE=""
   [[ -d "$vi_dir" ]] || { STATE=n/a; NOTE="needs the Vitals extension"; return; }
@@ -1136,7 +1136,7 @@ dtp_ignore='^panel-(anchors|element-positions|lengths|positions|sizes)$'   # sto
 dtp_present() { [[ -d "$dtp_dir" ]]; }
 dtp_enabled() { gsettings get org.gnome.shell enabled-extensions 2>/dev/null | grep -q "'$dtp_uuid'"; }
 label_dash_to_panel() { echo "One bar (Dash to Panel)"; }
-title_dash_to_panel() { echo "dock and top bar merged into one bar, no Activities button (log out once)"; }
+title_dash_to_panel() { echo "Dock and top bar in one bar (log out once)"; }
 detail_dash_to_panel() { echo "GNOME extension $dtp_uuid from extensions.gnome.org + preset look bluefeels/gnome/dash-to-panel; turns Ubuntu's dock off (put back by the uninstall)"; }
 config_dash_to_panel() { echo "dconf|Dash to Panel|$dtp_uuid|$dtp_path|$dtp_src/settings.dconf|dash-to-panel|a taskbar in place of the top bar and the dock|$dtp_ignore"; }
 state_dash_to_panel() { NOTE=""
